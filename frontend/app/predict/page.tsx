@@ -7,9 +7,10 @@ import { api, CLASS_LABEL, fmtPct, type PredictionResponse } from "@/lib/api";
 import { PageHeader, Panel, PanelTitle } from "@/components/ui";
 
 function ProbabilityRow({ cls, p, isTop }: { cls: string; p: number; isTop: boolean }) {
+  const topColor = cls === "healthy" ? "var(--color-teal-bright)" : "var(--color-ember-bright)";
   return (
     <div className="flex items-center gap-3">
-      <span className={`w-24 shrink-0 text-xs ${isTop ? "text-bone" : "text-muted"}`}>
+      <span className={`w-24 shrink-0 text-xs ${isTop ? "text-sand" : "text-muted"}`}>
         {CLASS_LABEL[cls] ?? cls}
       </span>
       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-2">
@@ -19,12 +20,12 @@ function ProbabilityRow({ cls, p, isTop }: { cls: string; p: number; isTop: bool
           transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
           style={{
             transformOrigin: "left",
-            background: isTop ? "var(--color-crimson)" : "var(--color-taupe)",
+            background: isTop ? topColor : "var(--color-line)",
           }}
           className="h-full w-full"
         />
       </div>
-      <span className="tabular w-16 shrink-0 text-right font-[family-name:var(--font-mono)] text-xs text-bone">
+      <span className="tabular w-16 shrink-0 text-right font-[family-name:var(--font-mono)] text-xs text-sand">
         {fmtPct(p)}
       </span>
     </div>
@@ -46,7 +47,7 @@ function Result({ result }: { result: PredictionResponse }) {
         <p className="text-[11px] uppercase tracking-[0.14em] text-muted">Diagnosis</p>
         <p
           className={`mt-2 text-4xl font-semibold tracking-tight ${
-            isHealthy ? "text-bone" : "text-crimson"
+            isHealthy ? "text-teal-bright" : "text-ember-bright"
           }`}
         >
           {CLASS_LABEL[result.predicted_class]}
@@ -69,7 +70,7 @@ function Result({ result }: { result: PredictionResponse }) {
           {result.driving_features.map((f) => (
             <div key={f.name} className="flex items-center justify-between gap-4">
               <div className="min-w-0">
-                <p className="truncate font-[family-name:var(--font-mono)] text-xs text-bone">
+                <p className="truncate font-[family-name:var(--font-mono)] text-xs text-sand">
                   {f.name}
                 </p>
                 <p className="text-[11px] text-muted">
@@ -134,8 +135,8 @@ export default function Predict() {
   return (
     <>
       <PageHeader eyebrow="Inference" title="Diagnose a signal">
-        Upload a raw vibration capture — a CWRU-format <span className="text-bone">.mat</span>{" "}
-        or a single-column <span className="text-bone">.csv</span> of accelerometer samples
+        Upload a raw vibration capture — a CWRU-format <span className="text-sand">.mat</span>{" "}
+        or a single-column <span className="text-sand">.csv</span> of accelerometer samples
         (≥ 2048 values at 12 kHz). Longer captures are segmented and majority-voted, the way
         a deployment would treat a continuous recording.
       </PageHeader>
@@ -162,12 +163,12 @@ export default function Predict() {
           disabled={mutation.isPending}
           className={`flex w-full flex-col items-center justify-center rounded-lg border border-dashed px-6 py-14 transition-colors duration-200 ${
             dragging
-              ? "border-crimson/70 bg-crimson/5"
-              : "border-line bg-surface hover:border-taupe"
+              ? "border-teal-bright/70 bg-teal/10"
+              : "border-line bg-surface hover:border-teal/60"
           } ${mutation.isPending ? "cursor-wait opacity-60" : "cursor-pointer"}`}
         >
-          <span className="text-2xl text-crimson">{mutation.isPending ? "…" : "⌾"}</span>
-          <span className="mt-3 text-sm text-bone">
+          <span className="text-2xl text-teal-bright">{mutation.isPending ? "…" : "⌾"}</span>
+          <span className="mt-3 text-sm text-sand">
             {mutation.isPending
               ? `Analyzing ${fileName ?? "signal"}`
               : "Drop a signal file, or click to browse"}
@@ -195,8 +196,8 @@ export default function Predict() {
               disabled={mutation.isPending}
               className={`rounded-full border px-3 py-1.5 text-xs transition-colors duration-200 ${
                 pendingDemo === demo.id
-                  ? "border-crimson/60 bg-crimson/10 text-bone"
-                  : "border-line text-muted hover:border-taupe hover:text-bone"
+                  ? "border-teal-bright/60 bg-teal/20 text-sand"
+                  : "border-line text-muted hover:border-teal/60 hover:text-sand"
               } ${mutation.isPending ? "cursor-wait opacity-60" : ""}`}
             >
               {demo.label}
@@ -212,9 +213,9 @@ export default function Predict() {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="mb-3 rounded-lg border border-crimson/40 bg-crimson/5 p-4"
+            className="mb-3 rounded-lg border border-ember-bright/40 bg-ember/15 p-4"
           >
-            <p className="text-sm text-bone">Could not diagnose this file</p>
+            <p className="text-sm text-sand">Could not diagnose this file</p>
             <p className="mt-1 text-xs text-muted">{(mutation.error as Error).message}</p>
           </motion.div>
         )}

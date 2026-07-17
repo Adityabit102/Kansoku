@@ -41,9 +41,9 @@ function HeroWaveform() {
     >
       <defs>
         <linearGradient id="wave" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stopColor="var(--color-taupe)" />
-          <stop offset="45%" stopColor="var(--color-taupe)" />
-          <stop offset="100%" stopColor="var(--color-crimson)" />
+          <stop offset="0%" stopColor="var(--color-teal-bright)" />
+          <stop offset="45%" stopColor="var(--color-teal)" />
+          <stop offset="100%" stopColor="var(--color-ember-bright)" />
         </linearGradient>
       </defs>
       <motion.polyline
@@ -84,11 +84,11 @@ export default function Overview() {
   return (
     <>
       <motion.section {...ENTER} className="mb-12 max-w-3xl">
-        <p className="mb-3 text-[11px] uppercase tracking-[0.22em] text-crimson">
+        <p className="mb-3 text-[11px] uppercase tracking-[0.22em] text-teal-bright">
           観測 · Observation
         </p>
-        <h1 className="text-4xl font-semibold leading-[1.1] tracking-tight text-bone md:text-5xl">
-          Bearing faults, diagnosed and <span className="text-crimson">justified</span>.
+        <h1 className="text-4xl font-semibold leading-[1.1] tracking-tight text-sand md:text-5xl">
+          Bearing faults, diagnosed and <span className="text-teal-bright">justified</span>.
         </h1>
         <p className="mt-5 text-[15px] leading-relaxed text-muted">
           Kansoku classifies bearing faults from raw vibration signals — and defends every
@@ -146,14 +146,14 @@ export default function Overview() {
           <p className="mt-3 text-sm leading-relaxed text-muted">
             Eta-squared asks a harder question — how much of a feature&rsquo;s variance the
             fault class actually explains — and it does not inflate with sample size.{" "}
-            <span className="text-bone">
+            <span className="text-sand">
               wv_detail_5_std is the clearest case: p = 5.7 × 10⁻¹²⁸, yet η² = 0.03.
             </span>{" "}
             Overwhelmingly significant, and nearly useless. It does not pass.
           </p>
           <Link
             href="/significance"
-            className="mt-5 inline-block text-xs text-crimson transition-opacity duration-200 hover:opacity-70"
+            className="mt-5 inline-block text-xs text-teal-bright transition-opacity duration-200 hover:opacity-70"
           >
             See the full table →
           </Link>
@@ -170,7 +170,7 @@ export default function Overview() {
               "Cluster without labels",
             ].map((step, i) => (
               <li key={step} className="flex gap-3">
-                <span className="font-[family-name:var(--font-mono)] text-xs text-crimson">
+                <span className="font-[family-name:var(--font-mono)] text-xs text-teal-bright">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <span className="text-muted">{step}</span>
@@ -185,11 +185,11 @@ export default function Overview() {
           <motion.div key={r.href} {...stagger(i)}>
             <Link
               href={r.href}
-              className="group block h-full rounded-lg border border-line bg-surface p-5 transition-colors duration-200 hover:border-taupe"
+              className="group block h-full rounded-lg border border-line bg-surface p-5 transition-colors duration-200 hover:border-teal/60"
             >
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-bone">{r.title}</h3>
-                <span className="text-muted transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:text-crimson">
+                <h3 className="text-sm font-medium text-sand">{r.title}</h3>
+                <span className="text-muted transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:text-teal-bright">
                   →
                 </span>
               </div>

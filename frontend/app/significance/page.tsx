@@ -26,12 +26,12 @@ function EtaBar({ value, passes }: { value: number; passes: boolean }) {
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           style={{
             transformOrigin: "left",
-            background: passes ? "var(--color-crimson)" : "var(--color-taupe)",
+            background: passes ? "var(--color-teal-bright)" : "var(--color-line)",
           }}
           className="h-full w-full"
         />
       </div>
-      <span className="tabular w-12 font-[family-name:var(--font-mono)] text-xs text-bone">
+      <span className="tabular w-12 font-[family-name:var(--font-mono)] text-xs text-sand">
         {value.toFixed(3)}
       </span>
     </div>
@@ -62,7 +62,7 @@ export default function Significance() {
         Every feature is tested before any model sees it. Levene&rsquo;s test checks variance
         homogeneity and routes each feature to ANOVA or Kruskal-Wallis; eta-squared then
         measures how much of the feature&rsquo;s variance the fault class actually explains.
-        A feature must clear <span className="text-bone">both</span> to reach a model.
+        A feature must clear <span className="text-sand">both</span> to reach a model.
       </PageHeader>
 
       {isLoading ? (
@@ -105,14 +105,14 @@ export default function Significance() {
             <p className="mt-3 text-sm leading-relaxed text-muted">
               Effect size does not have that problem. Sorted by η² below, the table shows
               which features carry real class information — and{" "}
-              <span className="text-bone">wv_detail_5_std</span>, significant at p ≈ 10⁻¹²⁸
+              <span className="text-sand">wv_detail_5_std</span>, significant at p ≈ 10⁻¹²⁸
               while explaining 3% of variance, shows exactly what the gate is for.
             </p>
           </Panel>
 
           <Panel index={2}>
             <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
-              <h2 className="text-sm font-medium text-bone">
+              <h2 className="text-sm font-medium text-sand">
                 All features <span className="text-muted">· sorted by effect size</span>
               </h2>
               <div className="flex gap-1" role="group" aria-label="Filter by domain">
@@ -123,8 +123,8 @@ export default function Significance() {
                     aria-pressed={domain === d}
                     className={`rounded-full border px-3 py-1 text-[11px] capitalize transition-colors duration-200 ${
                       domain === d
-                        ? "border-crimson/50 bg-crimson/10 text-bone"
-                        : "border-line text-muted hover:border-taupe hover:text-bone"
+                        ? "border-teal-bright/50 bg-teal/20 text-sand"
+                        : "border-line text-muted hover:border-teal/60 hover:text-sand"
                     }`}
                   >
                     {d}
@@ -162,7 +162,7 @@ export default function Significance() {
                         }`}
                       >
                         <td className="py-3">
-                          <span className="font-[family-name:var(--font-mono)] text-xs text-bone">
+                          <span className="font-[family-name:var(--font-mono)] text-xs text-sand">
                             {r.feature}
                           </span>
                           {open && r.separated_pairs.length > 0 && (

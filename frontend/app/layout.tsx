@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Nav } from "@/components/Nav";
 
-const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "swap" });
-const mono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"], display: "swap" });
+// Archivo: an industrial grotesque for the shop-floor voice; IBM Plex Mono for
+// instrument numerals — both chosen for the subject, not as defaults.
+const archivo = Archivo({ variable: "--font-archivo", subsets: ["latin"], display: "swap" });
+const mono = IBM_Plex_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Kansoku — Fault Diagnosis",
@@ -19,8 +26,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${mono.variable} h-full antialiased`}>
-      <body className="grain flex min-h-full flex-col font-[family-name:var(--font-inter)]">
+    <html lang="en" className={`${archivo.variable} ${mono.variable} h-full antialiased`}>
+      <body className="grain flex min-h-full flex-col font-[family-name:var(--font-archivo)]">
         <Providers>
           <Nav />
           <main className="mx-auto w-full max-w-[1400px] flex-1 px-6 py-10 md:px-10">

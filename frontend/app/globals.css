@@ -1,63 +1,73 @@
 @import "tailwindcss";
 
-/* Kansoku design tokens.
-   Palette: bone #e1decc, purple taupe #474145, ku crimson #e70f0e, black #010101.
+/* Kansoku design tokens — "instrument shop" theme.
+   Brand palette: sand #fbca89, pine #004437, teal #13737a, ember #88393c.
 
-   Contrast discipline: crimson on black measures ~4.4:1 — clears WCAG AA for
-   large text, FAILS it for body copy. Crimson is therefore reserved for
-   accents, fault states, large numerals and chart marks. Bone (15.4:1) carries
-   every piece of reading text. */
+   The palette maps onto the subject literally: pine is machine-shop enamel,
+   sand is the brass of gauge dials, teal is oscilloscope phosphor, ember is
+   oxide — rust, which is what a failing bearing produces. Hence the semantic
+   assignment: teal = instrument/interactive, ember = fault, sand = reading
+   text, pine = structure.
+
+   Contrast discipline (measured): sand on canvas 10.8:1, muted 6.5:1,
+   teal-bright 5.8:1, ember-bright 6.4:1 — all clear WCAG AA for body text.
+   Raw teal #13737a and ember #88393c sit near 2:1 on these surfaces, so they
+   are fill/border colors only and never carry text. */
 @theme {
-  --color-black: #010101;
-  --color-bone: #e1decc;
-  --color-taupe: #474145;
-  --color-crimson: #e70f0e;
+  --color-canvas: #01251e;
+  --color-pine: #004437;
+  --color-sand: #fbca89;
+  --color-teal: #13737a;
+  --color-ember: #88393c;
 
-  --color-surface: #0a0909;
-  --color-surface-2: #121011;
-  --color-line: #2a2629;
-  --color-muted: #8d8779;
+  --color-surface: #02352b;
+  --color-surface-2: #004437;
+  --color-line: #0d4d42;
+  --color-muted: #b5a184;
+  --color-teal-bright: #2caaa4;
+  --color-ember-bright: #e08b85;
 
   --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html {
   color-scheme: dark;
-  background: #010101;
+  background: #01251e;
 }
 
 body {
-  background: var(--color-black);
-  color: var(--color-bone);
+  background: var(--color-canvas);
+  color: var(--color-sand);
   -webkit-font-smoothing: antialiased;
 }
 
-/* Fault-class ramp. Crimson is semantically load-bearing here: it reads as
-   fault, so healthy sits deliberately at the opposite end in bone. */
+/* Chart series for fault classes — the four dark-mode categorical slots from
+   the validated default palette (all-pairs CVD-checked; legends and tooltips
+   provide the required secondary encoding). Brand colors stay on chrome. */
 :root {
-  --c-healthy: #e1decc;
-  --c-ball: #8d8779;
-  --c-inner_race: #c2452f;
-  --c-outer_race: #e70f0e;
+  --c-healthy: #008300;
+  --c-ball: #3987e5;
+  --c-inner_race: #d55181;
+  --c-outer_race: #c98500;
 }
 
-::selection { background: var(--color-crimson); color: var(--color-bone); }
+::selection { background: var(--color-teal); color: var(--color-sand); }
 
 /* Keyboard navigation is a stated requirement, so the ring stays visible. */
 :focus-visible {
-  outline: 2px solid var(--color-crimson);
+  outline: 2px solid var(--color-teal-bright);
   outline-offset: 2px;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: var(--color-black); }
+::-webkit-scrollbar-track { background: var(--color-canvas); }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-taupe);
-  border: 2px solid var(--color-black);
+  background: var(--color-pine);
+  border: 2px solid var(--color-canvas);
   border-radius: 999px;
 }
-::-webkit-scrollbar-thumb:hover { background: #5c545b; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-teal); }
 
 .tabular { font-variant-numeric: tabular-nums; }
 

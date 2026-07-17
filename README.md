@@ -104,7 +104,7 @@ Or without Docker: `uvicorn kansoku.api.main:app --port 8000` and `npm run dev` 
 
 ## Design
 
-Dark, minimal, engineered around a four-color palette: bone `#e1decc` on black `#010101` for all reading text (15.4:1), taupe `#474145` for structure, crimson `#e70f0e` strictly for fault states, large numerals, and chart marks — at 4.45:1 it passes WCAG AA for large text only, so it never carries body copy. Motion is one system: ≤ 280 ms, ease-out, opacity + ≤ 8px translate, disabled under `prefers-reduced-motion`. Every core view is one click from the persistent nav.
+An "instrument shop" theme built from four brand colors that map onto the subject literally: pine `#004437` is machine-shop enamel (surfaces), sand `#fbca89` is the brass of gauge dials (reading text, 10.8:1 on the canvas), teal `#13737a` is oscilloscope phosphor (everything interactive), and ember `#88393c` is oxide — rust, which is what a failing bearing produces (fault states). Raw teal and ember sit near 2:1 contrast, so they only ever appear as fills and borders; derived bright variants (5.8:1 / 6.4:1, WCAG AA) carry any colored text. Chart series use a CVD-validated categorical palette rather than the brand hues — identity in a scatter must survive colorblind viewing, and warm brand ramps cannot. Type is Archivo + IBM Plex Mono. Motion is one system: ≤ 280 ms, ease-out, opacity + ≤ 8px translate, disabled under `prefers-reduced-motion`.
 
 ## Docs
 

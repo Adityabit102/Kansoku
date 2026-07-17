@@ -9,24 +9,30 @@ import { ENTER, ErrorNote, PageHeader, Panel, PanelTitle, Skeleton, Stat } from 
 
 type ColorMode = "cluster" | "label" | "severity";
 
-/** Categorical ramp for discovered clusters: taupe→bone→crimson family, no hues
- *  outside the palette. */
+/** Identity colors for discovered clusters: the eight dark-mode categorical
+ *  slots of the validated default palette, in fixed order, plus a neutral for
+ *  the ninth. Nine series in a scatter exceeds what any palette can make
+ *  all-pairs CVD-safe, so identity leans on the required secondary encoding:
+ *  the legend, per-point tooltips, and the composition panel. */
 const CLUSTER_COLORS = [
-  "#e70f0e", "#e1decc", "#8d8779", "#c2452f", "#5c545b",
-  "#a8503c", "#b5ae9d", "#742b21", "#474145", "#d98a7a", "#63594f", "#932e1a",
+  "#3987e5", "#008300", "#d55181", "#c98500",
+  "#199e70", "#d95926", "#9085e9", "#e66767", "#9aa5a0",
 ];
 
+/** Ordinal ramp: severity is ordered, so one hue, monotonic lightness (the
+ *  default blue sequential steps 250/400/550). Healthy is a neutral state,
+ *  not a rung on the ramp. */
 const SEVERITY_COLOR: Record<string, string> = {
-  "0": "#e1decc",
-  "0.007": "#8d8779",
-  "0.014": "#c2452f",
-  "0.021": "#e70f0e",
+  "0": "#7d938a",
+  "0.007": "#86b6ef",
+  "0.014": "#3987e5",
+  "0.021": "#1c5cab",
 };
 
 function pointColor(p: ClusterPoint, mode: ColorMode): string {
   if (mode === "cluster") return CLUSTER_COLORS[p.cluster % CLUSTER_COLORS.length];
   if (mode === "label") return CLASS_COLOR[p.true_label];
-  return SEVERITY_COLOR[String(p.severity)] ?? "#8d8779";
+  return SEVERITY_COLOR[String(p.severity)] ?? "#7d938a";
 }
 
 function Scatter({ points, mode }: { points: ClusterPoint[]; mode: ColorMode }) {
@@ -90,10 +96,10 @@ function Scatter({ points, mode }: { points: ClusterPoint[]; mode: ColorMode }) 
       <svg ref={ref} className="h-[460px] w-full" role="img" aria-label="PCA projection of segments" />
       {tip && (
         <div
-          className="pointer-events-none absolute z-10 rounded border border-line bg-black/95 px-3 py-2 text-xs"
+          className="pointer-events-none absolute z-10 rounded border border-line bg-canvas/95 px-3 py-2 text-xs"
           style={{ left: `min(${tip.x + 12}px, calc(100% - 200px))`, top: tip.y - 8 }}
         >
-          <p className="font-[family-name:var(--font-mono)] text-bone">{tip.p.segment_id}</p>
+          <p className="font-[family-name:var(--font-mono)] text-sand">{tip.p.segment_id}</p>
           <p className="mt-1 text-muted">
             cluster {tip.p.cluster} · {CLASS_LABEL[tip.p.true_label]}
             {tip.p.severity > 0 && ` · ${tip.p.severity}″`} · {tip.p.load_hp} hp
@@ -133,7 +139,8 @@ function SilhouetteSweep({
     svg.selectAll("*").remove();
     svg.attr("viewBox", `0 0 ${width} ${height}`);
 
-    // Inertia (elbow) in taupe, silhouette in crimson; chosen k gets a marker.
+    // Inertia (elbow) recedes in the line color; silhouette carries the story
+    // in teal; chosen k gets a marker.
     const lineIn = d3
       .line<(typeof sweep)[number]>()
       .x((s) => x(s.k)!)
@@ -146,9 +153,9 @@ function SilhouetteSweep({
       .curve(d3.curveMonotoneX);
 
     svg.append("path").datum(sweep).attr("d", lineIn).attr("fill", "none")
-      .attr("stroke", "var(--color-taupe)").attr("stroke-width", 1.5);
+      .attr("stroke", "var(--color-line)").attr("stroke-width", 1.5);
     const silPath = svg.append("path").datum(sweep).attr("d", lineSil).attr("fill", "none")
-      .attr("stroke", "var(--color-crimson)").attr("stroke-width", 1.8);
+      .attr("stroke", "var(--color-teal-bright)").attr("stroke-width", 1.8);
 
     // Draw-in on first paint only; 500ms, ease-out.
     const len = (silPath.node() as SVGPathElement).getTotalLength();
@@ -163,10 +170,10 @@ function SilhouetteSweep({
     const chosenPt = sweep.find((s) => s.k === chosen)!;
     svg.append("circle")
       .attr("cx", x(chosen)!).attr("cy", ySil(chosenPt.silhouette)).attr("r", 4)
-      .attr("fill", "var(--color-crimson)");
+      .attr("fill", "var(--color-teal-bright)");
     svg.append("text")
       .attr("x", x(chosen)!).attr("y", ySil(chosenPt.silhouette) - 10)
-      .attr("text-anchor", "middle").attr("fill", "var(--color-bone)")
+      .attr("text-anchor", "middle").attr("fill", "var(--color-sand)")
       .attr("font-size", 11).attr("font-family", "var(--font-mono)")
       .text(`k=${chosen}`);
 
@@ -204,10 +211,10 @@ export default function Clusters() {
     <>
       <PageHeader eyebrow="Unsupervised discovery" title="Cluster explorer">
         K-means ran on the gated feature space with{" "}
-        <span className="text-bone">no access to labels</span>, and peak silhouette chose
+        <span className="text-sand">no access to labels</span>, and peak silhouette chose
         k = {data?.chosen_k ?? "…"} — more than the 4 labeled classes. Switch the coloring
         below and the story appears: the extra clusters are{" "}
-        <span className="text-bone">fault severity</span>, a physical dimension the labels
+        <span className="text-sand">fault severity</span>, a physical dimension the labels
         never encoded.
       </PageHeader>
 
@@ -234,7 +241,7 @@ export default function Clusters() {
 
           <Panel index={1} className="mb-3">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-              <h2 className="text-sm font-medium text-bone">
+              <h2 className="text-sm font-medium text-sand">
                 PCA projection <span className="text-muted">· PC1 × PC2</span>
               </h2>
               <div className="flex gap-1" role="group" aria-label="Color points by">
@@ -245,8 +252,8 @@ export default function Clusters() {
                     aria-pressed={mode === m}
                     className={`rounded-full border px-3 py-1 text-[11px] capitalize transition-colors duration-200 ${
                       mode === m
-                        ? "border-crimson/50 bg-crimson/10 text-bone"
-                        : "border-line text-muted hover:border-taupe hover:text-bone"
+                        ? "border-teal-bright/50 bg-teal/20 text-sand"
+                        : "border-line text-muted hover:border-teal/60 hover:text-sand"
                     }`}
                   >
                     by {m}
@@ -267,7 +274,7 @@ export default function Clusters() {
 
           <div className="grid gap-3 lg:grid-cols-2">
             <Panel index={2}>
-              <PanelTitle hint="crimson: silhouette · taupe: inertia">
+              <PanelTitle hint="teal: silhouette · dim: inertia">
                 Why k = {data.chosen_k}
               </PanelTitle>
               <SilhouetteSweep sweep={data.sweep} chosen={data.chosen_k} />
