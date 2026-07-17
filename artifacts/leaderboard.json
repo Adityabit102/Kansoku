@@ -1,0 +1,398 @@
+[
+  {
+    "model_name": "Random Forest",
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "cv_mean": 0.9992453705926602,
+    "cv_std": 0.0006396221893043234,
+    "inference_latency_ms": 13.392436958383769,
+    "per_class": {
+      "ball": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 235
+      },
+      "healthy": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 473
+      },
+      "inner_race": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 235
+      },
+      "outer_race": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 352
+      }
+    },
+    "confusion_matrix": [
+      [
+        235,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        473,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        235,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        352
+      ]
+    ],
+    "class_order": [
+      "ball",
+      "healthy",
+      "inner_race",
+      "outer_race"
+    ]
+  },
+  {
+    "model_name": "k-Nearest Neighbors",
+    "accuracy": 0.9938223938223938,
+    "macro_f1": 0.9918708902486496,
+    "cv_mean": 0.9882759477178935,
+    "cv_std": 0.016292886868014615,
+    "inference_latency_ms": 0.5084165022708476,
+    "per_class": {
+      "ball": {
+        "precision": 0.9670781893004116,
+        "recall": 1.0,
+        "f1": 0.9832635983263598,
+        "support": 235
+      },
+      "healthy": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 473
+      },
+      "inner_race": {
+        "precision": 1.0,
+        "recall": 0.9744680851063829,
+        "f1": 0.9870689655172413,
+        "support": 235
+      },
+      "outer_race": {
+        "precision": 1.0,
+        "recall": 0.9943181818181818,
+        "f1": 0.9971509971509972,
+        "support": 352
+      }
+    },
+    "confusion_matrix": [
+      [
+        235,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        473,
+        0,
+        0
+      ],
+      [
+        6,
+        0,
+        229,
+        0
+      ],
+      [
+        2,
+        0,
+        0,
+        350
+      ]
+    ],
+    "class_order": [
+      "ball",
+      "healthy",
+      "inner_race",
+      "outer_race"
+    ]
+  },
+  {
+    "model_name": "Logistic Regression",
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "cv_mean": 0.9857384491693985,
+    "cv_std": 0.012807222523282426,
+    "inference_latency_ms": 0.05722901551052928,
+    "per_class": {
+      "ball": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 235
+      },
+      "healthy": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 473
+      },
+      "inner_race": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 235
+      },
+      "outer_race": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 352
+      }
+    },
+    "confusion_matrix": [
+      [
+        235,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        473,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        235,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        352
+      ]
+    ],
+    "class_order": [
+      "ball",
+      "healthy",
+      "inner_race",
+      "outer_race"
+    ]
+  },
+  {
+    "model_name": "Neural Network (MLP)",
+    "accuracy": 0.9899613899613899,
+    "macro_f1": 0.9882345914954611,
+    "cv_mean": 0.96930992603302,
+    "cv_std": 0.0405486906129259,
+    "inference_latency_ms": 18.821625446435064,
+    "per_class": {
+      "ball": {
+        "precision": 0.9475806451612904,
+        "recall": 1.0,
+        "f1": 0.9730848861283644,
+        "support": 235
+      },
+      "healthy": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 473
+      },
+      "inner_race": {
+        "precision": 1.0,
+        "recall": 0.9914893617021276,
+        "f1": 0.9957264957264957,
+        "support": 235
+      },
+      "outer_race": {
+        "precision": 1.0,
+        "recall": 0.96875,
+        "f1": 0.9841269841269841,
+        "support": 352
+      }
+    },
+    "confusion_matrix": [
+      [
+        235,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        473,
+        0,
+        0
+      ],
+      [
+        2,
+        0,
+        233,
+        0
+      ],
+      [
+        11,
+        0,
+        0,
+        341
+      ]
+    ],
+    "class_order": [
+      "ball",
+      "healthy",
+      "inner_race",
+      "outer_race"
+    ]
+  },
+  {
+    "model_name": "Decision Tree",
+    "accuracy": 0.9961389961389961,
+    "macro_f1": 0.9955679783034795,
+    "cv_mean": 0.9405443737383473,
+    "cv_std": 0.0668499796830829,
+    "inference_latency_ms": 0.049208058044314384,
+    "per_class": {
+      "ball": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 235
+      },
+      "healthy": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 473
+      },
+      "inner_race": {
+        "precision": 0.9872881355932204,
+        "recall": 0.9914893617021276,
+        "f1": 0.9893842887473461,
+        "support": 235
+      },
+      "outer_race": {
+        "precision": 0.9943019943019943,
+        "recall": 0.9914772727272727,
+        "f1": 0.9928876244665719,
+        "support": 352
+      }
+    },
+    "confusion_matrix": [
+      [
+        235,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        473,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        233,
+        2
+      ],
+      [
+        0,
+        0,
+        3,
+        349
+      ]
+    ],
+    "class_order": [
+      "ball",
+      "healthy",
+      "inner_race",
+      "outer_race"
+    ]
+  },
+  {
+    "model_name": "Naive Bayes",
+    "accuracy": 0.8571428571428571,
+    "macro_f1": 0.8402756328229567,
+    "cv_mean": 0.9184450039554651,
+    "cv_std": 0.06640862779359794,
+    "inference_latency_ms": 0.06787496386095881,
+    "per_class": {
+      "ball": {
+        "precision": 0.5595238095238095,
+        "recall": 1.0,
+        "f1": 0.7175572519083969,
+        "support": 235
+      },
+      "healthy": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 473
+      },
+      "inner_race": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 235
+      },
+      "outer_race": {
+        "precision": 1.0,
+        "recall": 0.4744318181818182,
+        "f1": 0.6435452793834296,
+        "support": 352
+      }
+    },
+    "confusion_matrix": [
+      [
+        235,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        473,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        235,
+        0
+      ],
+      [
+        185,
+        0,
+        0,
+        167
+      ]
+    ],
+    "class_order": [
+      "ball",
+      "healthy",
+      "inner_race",
+      "outer_race"
+    ]
+  }
+]

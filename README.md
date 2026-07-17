@@ -1,6 +1,6 @@
 # Kansoku (観測)
 
-**Multi-Algorithm Fault Diagnosis Platform** — detect, classify, and statistically explain machine faults from vibration and acoustic sensor signals.
+**Multi-Algorithm Fault Diagnosis Platform** — detect, classify, and statistically explain machine faults from vibration sensor signals.
 
 `Python` · `scikit-learn` · `TensorFlow/Keras` · `SciPy` · `statsmodels` · `PyWavelets` · `FastAPI` · `Next.js` · `TypeScript` · `D3.js` · `Docker` | Predictive Maintenance · Signal Processing · Applied Statistics · Full Stack
 
@@ -8,125 +8,104 @@
 
 ---
 
-## Overview
+## Results
 
-Manufacturing equipment failures are expensive and usually preventable. Raw vibration data carries early fault signatures, but most predictive-maintenance tooling either hides behind a single black-box model with no justification for why it works, or dumps raw signal charts on an operator with no diagnostic interpretation.
+Measured on the CWRU Bearing Dataset (40 recordings, 12 kHz drive-end accelerometer), **5,886** overlapping 2,048-sample segments, four classes. All models share one seeded, **recording-grouped** split and the same 34 statistically-gated features. Ranked by grouped 5-fold cross-validated accuracy — see [Honest evaluation](#honest-evaluation) for why that is the only number reported first.
 
-Kansoku closes both gaps. It extracts interpretable time-, frequency-, and time-frequency-domain features from raw accelerometer signals; runs hypothesis tests to prove which features actually separate fault classes *before* they reach a model; benchmarks six classification algorithms head-to-head on identical splits; and clusters the validated feature space to surface fault regimes that were never labeled in the first place.
+| Model | CV accuracy (grouped 5-fold) | Holdout | Inference |
+|---|---|---|---|
+| **Random Forest** | **99.92% ± 0.06** | 100% | 13.4 ms |
+| k-Nearest Neighbors | 98.83% ± 1.63 | 99.38% | 0.51 ms |
+| Logistic Regression | 98.57% ± 1.28 | 100% | 0.06 ms |
+| Neural Network (Keras MLP) | 96.93% ± 4.05 | 98.99% | 18.8 ms |
+| Decision Tree | 94.05% ± 6.69 | 99.61% | 0.05 ms |
+| Naive Bayes (Gaussian) | 91.84% ± 6.64 | 85.71% | 0.07 ms |
 
-The statistical validation layer is the differentiator: every feature that reaches a model has a documented significance test behind it, and those results are surfaced in the UI rather than buried in a notebook.
+The spread is the point. Naive Bayes trails because vibration features are strongly correlated (spectral centroid, rolloff, and band energies move together), violating its independence assumption — the benchmark discriminates between algorithms rather than rubber-stamping all of them.
+
+**Other measured results**
+
+- **34 / 36** extracted features pass the two-stage significance gate; the 2 rejections are the methodological story (below).
+- K-means (labels withheld) selects **k = 9** by peak silhouette (0.529) against only 4 labeled classes — the extra clusters recover **fault severity** (0.007″ / 0.014″ / 0.021″), a physical dimension the labels never encoded, at 0.88–1.00 per-cluster label purity. Ball faults refuse to split by severity, which is physically expected; motor load separates nothing.
+- `/predict` end-to-end: **~85 ms p95** per windowed signal, **~215 ms** for a full ~120-window recording (16-window majority vote), against a 200 ms per-sample budget.
+- **44 pytest tests** across signal processing, statistics, and API contracts; extractors are validated against analytically known values (RMS of a known sine, kurtosis of Gaussian noise ≈ 3).
+
+## The differentiator: statistics before models
+
+Most fault-diagnosis demos pick features by intuition. Kansoku gates them:
+
+1. **Levene's test** checks variance homogeneity per feature, routing to **ANOVA** (assumptions hold) or **Kruskal–Wallis** (they don't). On CWRU all 36 features route to Kruskal–Wallis — fault classes change feature *spread*, not just means.
+2. **Eta-squared (effect size)** is the real filter. At n ≈ 5,900, p-values are vacuous — *every* feature clears p < 0.05, many at p ≈ 0, because large samples make trivial differences "significant". The gate demands **η² > 0.14** (Cohen's large-effect threshold) on top of p < 0.05.
+3. **Tukey HSD post-hoc** identifies *which* fault-class pairs each surviving feature actually separates.
+
+The showcase rejection: `wv_detail_5_std` reaches **p = 5.7 × 10⁻¹²⁸** — as significant as statistics gets — while explaining **3%** of variance (η² = 0.03). A p-only gate waves it through; the effect-size gate rejects it. Predictions expose the same layer: `/predict` returns the driving features weighted by deviation × effect size, so every diagnosis is explainable in terms of statistically validated evidence.
+
+## Honest evaluation
+
+Two decisions that keep the numbers defensible:
+
+- **Recording-grouped splits, never random.** Segments are cut with 50% overlap, so neighboring windows share half their samples — a random split leaks near-duplicates of training data into the test set. All six models scored ~100% under a random split (including logistic regression: the tell). `StratifiedGroupKFold` keyed on source recording guarantees a test recording is never seen in any form during training.
+- **Ranked by CV, not holdout.** The holdout is only ~8 recordings; an easy draw hands a weaker model a perfect score (two models hit 100% on it). The grouped cross-validated mean, with its σ, is the headline number.
 
 ## Architecture
 
 ```
-Raw vibration signal (.mat / .csv)
-        │
-        ▼
-┌───────────────────────┐
-│  Signal Processing    │  time-domain: RMS, kurtosis, skewness, crest factor, peak-to-peak
-│                       │  frequency-domain (FFT): dominant freq, spectral energy bands, centroid
-│                       │  time-frequency: wavelet transform for non-stationary segments
-└───────────┬───────────┘
-            ▼
-┌───────────────────────┐
-│ Statistical Validation│  Levene's test → routes to ANOVA or Kruskal-Wallis
-│                       │  Tukey HSD post-hoc → which fault-class pairs each feature separates
-└───────────┬───────────┘
-            │  only significant features pass through
-            ├──────────────────────────────┐
-            ▼                              ▼
-┌───────────────────────┐     ┌───────────────────────┐
-│ Unsupervised Discovery│     │ Classification Suite  │
-│ K-means + silhouette/ │     │ 6 algorithms, same    │
-│ elbow justification   │     │ splits, StratifiedKFold
-│ PCA projection        │     └───────────┬───────────┘
-└───────────────────────┘                 ▼
-                              ┌───────────────────────┐
-                              │  FastAPI Inference    │  class + confidence +
-                              │  versioned artifacts  │  driving features
-                              └───────────┬───────────┘
-                                          ▼
-                              ┌───────────────────────┐
-                              │  Next.js Dashboard    │  waveform/FFT viewer, significance
-                              │  TypeScript · D3 ·    │  panel, cluster explorer,
-                              │  Recharts · Framer    │  model leaderboard
-                              └───────────────────────┘
+Raw vibration (.mat, 12 kHz)
+   │  segment: 2048-sample windows, 50% overlap
+   ▼
+Feature extraction ──────────── 36 features
+   time domain    RMS · kurtosis · skew · crest · impulse · clearance …
+   frequency      FFT (Hann): centroid · rolloff · entropy · 6 energy bands
+   time-frequency wavelet (db4 ×5): per-level energy · std · entropy
+   ▼
+Statistical gate ────────────── 34 survive
+   Levene → ANOVA / Kruskal-Wallis · η² > 0.14 · Tukey HSD pairs
+   ├──────────────────────────────┐
+   ▼                              ▼
+K-means discovery              6-model benchmark
+   silhouette sweep k∈[2,12]      identical StratifiedGroupKFold splits
+   PCA projection (81.6% var)     DT · LogReg · RF · GNB · kNN · Keras MLP
+                                  ▼
+                               FastAPI ─ /predict /significance /leaderboard /clusters /signal
+                                  ▼
+                               Next.js 16 · TypeScript · Tailwind v4 · Framer Motion
+                                  D3 waveform/FFT viewer · cluster explorer
+                                  significance table · leaderboard w/ confusion drill-down
 ```
 
-## Core Features
-
-### Signal Ingestion & Feature Extraction
-Accepts raw accelerometer time-series across multiple sampling rates and fault classes. Extracts three complementary feature families — time-domain statistics, FFT-derived frequency-domain features, and wavelet-based time-frequency features for non-stationary segments.
-
-### Statistical Validation Layer
-Levene's test checks variance homogeneity and routes each feature to the appropriate test — ANOVA when assumptions hold, Kruskal-Wallis when they don't. Tukey HSD post-hoc testing then identifies which specific fault-class pairs a feature actually distinguishes. Results render in-app as a feature-significance table, so "why this feature" has a defensible answer rather than an intuition.
-
-### Unsupervised Discovery
-K-means clustering over the validated feature space surfaces fault sub-regimes independent of labels. Cluster count is justified in the UI via elbow method and silhouette score rather than picked arbitrarily, with PCA projection for 2D/3D exploration.
-
-### Classification Benchmark Suite
-Six algorithms trained and evaluated on identical splits with `StratifiedKFold` cross-validation:
-
-| Algorithm | Implementation |
-|---|---|
-| Decision Tree | `sklearn.tree.DecisionTreeClassifier` |
-| Logistic Regression | `sklearn.linear_model.LogisticRegression` |
-| Random Forest | `sklearn.ensemble.RandomForestClassifier` |
-| Naive Bayes (Gaussian) | `sklearn.naive_bayes.GaussianNB` |
-| k-Nearest Neighbors | `sklearn.neighbors.KNeighborsClassifier` |
-| Neural Network (MLP) | `TensorFlow / Keras` |
-
-Each reports accuracy, per-class precision/recall/F1, confusion matrix, and inference latency — presented as a live sortable leaderboard with confusion-matrix drill-down.
-
-### Inference API
-FastAPI backend serving real-time classification on uploaded signals, returning predicted fault class, confidence, and the statistically-validated features that drove the prediction. Pydantic schemas enforce request/response contracts; models are versioned as `joblib` artifacts (classical) and Keras SavedModel (neural net).
-
-### Dashboard
-Next.js + TypeScript frontend with a professional, minimal design language: signal waveform and FFT spectrum viewer (D3.js), feature-significance panel, cluster explorer, and model leaderboard (Recharts). Framer Motion drives panel transitions and animated chart entry — polish, never distraction. No more than two clicks from landing to any core view.
-
-## Tech Stack
+## Stack
 
 | Layer | Technology |
 |---|---|
-| **Signal Processing** | NumPy, SciPy (`scipy.signal`, `scipy.stats`), PyWavelets, pandas |
-| **Statistics** | SciPy (`f_oneway`, `levene`, `kruskal`), statsmodels (`pairwise_tukeyhsd`) |
-| **ML — Classical** | scikit-learn (6-algorithm suite, KMeans, PCA, silhouette, StratifiedKFold) |
-| **ML — Neural** | TensorFlow / Keras (MLP) |
-| **Backend** | FastAPI, Pydantic, joblib |
-| **Frontend** | Next.js, TypeScript, Tailwind CSS, Framer Motion, D3.js, Recharts, TanStack Query |
-| **Testing** | pytest, httpx |
-| **Infrastructure** | Docker, GitHub Actions CI, AWS EC2 (Nginx + Gunicorn/Uvicorn), AWS S3 + boto3 |
+| Signal processing | NumPy, SciPy (`signal`, `stats`), PyWavelets, pandas |
+| Statistics | SciPy (`levene`, `f_oneway`, `kruskal`), statsmodels (Tukey HSD), eta-squared |
+| ML — classical | scikit-learn (5 classifiers, KMeans, PCA, silhouette, StratifiedGroupKFold) |
+| ML — neural | TensorFlow/Keras MLP (128→64, dropout, seeded) |
+| Backend | FastAPI, Pydantic contracts, joblib + Keras artifacts, versioned manifest |
+| Frontend | Next.js 16, TypeScript, Tailwind v4, Framer Motion, D3.js, Recharts, TanStack Query |
+| Quality | pytest (44 tests), ruff, ESLint, GitHub Actions CI |
+| Infra | Docker + docker-compose, artifact/data volumes |
 
-## Data
+## Run it
 
-Built against the **CWRU Bearing Dataset** and **MAFAULDA (Machinery Fault Database)** — public, standard benchmarks for vibration-based fault diagnosis. Fault classes span healthy, inner-race, outer-race, ball fault, and imbalance at varying severities.
+```bash
+# 1. Train (downloads CWRU data ~200MB, runs full pipeline: ~10 min)
+cd backend
+python -m kansoku.signal.pipeline    # download + segment + extract features
+python -m kansoku.stats.run          # significance gate
+python -m kansoku.models.train       # 6-model benchmark
+python -m kansoku.models.cluster     # k-means sweep
 
-## Targets
+# 2. Serve
+docker compose up --build            # web on :3000, API on :8000
+```
 
-<!-- Replace each target with the measured result once the pipeline is trained and benchmarked. -->
+Or without Docker: `uvicorn kansoku.api.main:app --port 8000` and `npm run dev` in `frontend/`.
 
-| Goal | Target |
-|---|---|
-| Fault classification accuracy | ≥95% on held-out test set |
-| Inference latency | <200ms per signal sample |
-| Feature justification | Every modeled feature passes a documented significance test |
-| Unsupervised discovery | K-means surfaces ≥1 sub-regime absent from labeled classes |
-| Reproducibility | All training seeded and versioned; test results logged with model artifacts |
-| Engineering quality | pytest coverage on core pipeline; CI green on every merge |
+## Design
 
-## Roadmap
+Dark, minimal, engineered around a four-color palette: bone `#e1decc` on black `#010101` for all reading text (15.4:1), taupe `#474145` for structure, crimson `#e70f0e` strictly for fault states, large numerals, and chart marks — at 4.45:1 it passes WCAG AA for large text only, so it never carries body copy. Motion is one system: ≤ 280 ms, ease-out, opacity + ≤ 8px translate, disabled under `prefers-reduced-motion`. Every core view is one click from the persistent nav.
 
-- [ ] **Phase 1** — Signal processing pipeline + feature extraction, validated against known dataset labels
-- [ ] **Phase 2** — Statistical validation layer (Levene → ANOVA/Kruskal-Wallis → Tukey HSD)
-- [ ] **Phase 3** — K-means clustering + 6-algorithm classification benchmark suite
-- [ ] **Phase 4** — FastAPI inference backend + Docker + CI + pytest coverage
-- [ ] **Phase 5** — Next.js dashboard, leaderboard, cluster explorer, animated UI polish
-- [ ] **Phase 6** — End-to-end testing, documentation, deployment
+## Docs
 
-## Out of Scope (v1)
-
-Live streaming sensor ingestion (v1 is batch/upload-based) · multi-tenant auth · mobile-native app (responsive web only).
-
-## Status
-
-🚧 In development — see roadmap above.
+[PRD](PRD.md) · [Tech stack](TECHSTACK.md)

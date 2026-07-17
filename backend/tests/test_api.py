@@ -1,0 +1,149 @@
+"""Phase 4 gate: endpoint contracts and the <200ms latency requirement."""
+
+import io
+
+import numpy as np
+import pytest
+from fastapi.testclient import TestClient
+
+from kansoku.api.main import app
+from kansoku.config import ARTIFACTS, WINDOW_SIZE
+
+# These tests exercise the real trained artifacts. On a clean clone (CI) they
+# don't exist yet, so the whole module skips rather than failing; the signal
+# and stats suites still run everywhere.
+pytestmark = pytest.mark.skipif(
+    not (ARTIFACTS / "manifest.json").exists(),
+    reason="trained artifacts not present; run the training pipeline first",
+)
+
+client = TestClient(app)
+
+
+@pytest.fixture
+def csv_signal() -> bytes:
+    """A synthetic impulsive signal long enough to segment."""
+    rng = np.random.default_rng(0)
+    sig = rng.standard_normal(WINDOW_SIZE * 3)
+    sig[::128] += 8.0
+    buf = io.BytesIO()
+    np.savetxt(buf, sig, delimiter=",")
+    return buf.getvalue()
+
+
+def test_health():
+    r = client.get("/health")
+    assert r.status_code == 200
+    assert r.json()["status"] == "ok"
+
+
+def test_leaderboard_has_all_six_models():
+    r = client.get("/leaderboard")
+    assert r.status_code == 200
+    rows = r.json()
+    assert len(rows) == 6, "the benchmark must report every required algorithm"
+    names = {row["model_name"] for row in rows}
+    assert names == {
+        "Decision Tree", "Logistic Regression", "Random Forest",
+        "Naive Bayes", "k-Nearest Neighbors", "Neural Network (MLP)",
+    }
+
+
+def test_leaderboard_is_ranked_by_cv_not_holdout():
+    """The lucky-holdout trap: ranking must use the cross-validated mean."""
+    rows = client.get("/leaderboard").json()
+    cv = [r["cv_mean"] for r in rows]
+    assert cv == sorted(cv, reverse=True)
+
+
+def test_leaderboard_confusion_matrix_is_square_and_totals_support():
+    for row in client.get("/leaderboard").json():
+        n = len(row["class_order"])
+        cm = row["confusion_matrix"]
+        assert len(cm) == n and all(len(r) == n for r in cm)
+        assert sum(map(sum, cm)) == sum(c["support"] for c in row["per_class"].values())
+
+
+def test_significance_gate_is_consistent():
+    rows = client.get("/significance").json()
+    assert rows, "significance table must not be empty"
+    for row in rows:
+        expected = row["p_value"] < 0.05 and row["eta_squared"] > 0.14
+        assert row["passes_gate"] == expected
+        # Tukey pairs are only computed for features that clear the gate.
+        assert row["separated_pairs"] == [] or row["passes_gate"]
+
+
+def test_significance_is_sorted_by_effect_size():
+    e2 = [r["eta_squared"] for r in client.get("/significance").json()]
+    assert e2 == sorted(e2, reverse=True)
+
+
+def test_clusters_shape():
+    c = client.get("/clusters").json()
+    assert c["chosen_k"] == max(c["sweep"], key=lambda s: s["silhouette"])["k"]
+    assert len(c["explained_variance"]) == 3
+    assert {p["cluster"] for p in c["points"]} == set(range(c["chosen_k"]))
+
+
+def test_signal_roundtrip():
+    seg = client.get("/segments?limit=4").json()[0]
+    file_id, idx = seg["segment_id"].split("#")
+    r = client.get(f"/signal/{file_id}/{idx}")
+    assert r.status_code == 200
+    body = r.json()
+    assert len(body["waveform"]) == WINDOW_SIZE
+    assert len(body["fft_freqs"]) == len(body["fft_magnitude"]) == WINDOW_SIZE // 2 + 1
+
+
+def test_signal_404_on_unknown_recording():
+    assert client.get("/signal/99999/0").status_code == 404
+
+
+def test_signal_404_on_out_of_range_index():
+    assert client.get("/signal/97/999999").status_code == 404
+
+
+def test_signal_422_on_non_integer_index():
+    assert client.get("/signal/97/abc").status_code == 422
+
+
+def test_predict_csv(csv_signal):
+    r = client.post("/predict", files={"file": ("sig.csv", csv_signal, "text/csv")})
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["predicted_class"] in {"healthy", "ball", "inner_race", "outer_race"}
+    assert 0.0 <= body["confidence"] <= 1.0
+    assert sum(body["class_probabilities"].values()) == pytest.approx(1.0, abs=1e-5)
+    assert body["driving_features"], "a prediction must explain itself"
+
+
+def test_predict_driving_features_are_gated_and_normalized(csv_signal):
+    body = client.post("/predict", files={"file": ("s.csv", csv_signal, "text/csv")}).json()
+    feats = body["driving_features"]
+    assert all(f["eta_squared"] > 0.14 for f in feats), "only validated features may drive"
+    assert sum(f["contribution"] for f in feats) == pytest.approx(1.0, abs=1e-6)
+
+
+def test_predict_rejects_short_signal():
+    buf = io.BytesIO()
+    np.savetxt(buf, np.zeros(100), delimiter=",")
+    r = client.post("/predict", files={"file": ("s.csv", buf.getvalue(), "text/csv")})
+    assert r.status_code == 400
+    assert "too short" in r.json()["detail"]
+
+
+def test_predict_rejects_unsupported_type():
+    r = client.post("/predict", files={"file": ("s.wav", b"RIFF", "audio/wav")})
+    assert r.status_code == 400
+
+
+def test_predict_latency_under_200ms(csv_signal):
+    """The PRD's non-functional requirement, asserted rather than assumed."""
+    latencies = []
+    for _ in range(10):
+        r = client.post("/predict", files={"file": ("s.csv", csv_signal, "text/csv")})
+        assert r.status_code == 200
+        latencies.append(r.json()["latency_ms"])
+    p95 = float(np.percentile(latencies, 95))
+    assert p95 < 200.0, f"p95 latency {p95:.1f}ms exceeds the 200ms budget"

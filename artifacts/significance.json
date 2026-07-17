@@ -1,0 +1,636 @@
+[
+  {
+    "feature":"fd_spectral_centroid",
+    "domain":"frequency",
+    "test_used":"kruskal_wallis",
+    "levene_p":4.999245122e-268,
+    "statistic":4413.3263312286,
+    "p_value":0.0,
+    "eta_squared":0.9720388724,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"wv_detail_1_energy",
+    "domain":"wavelet",
+    "test_used":"kruskal_wallis",
+    "levene_p":0.0,
+    "statistic":4364.0815927787,
+    "p_value":0.0,
+    "eta_squared":0.9330203449,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"fd_spectral_rolloff",
+    "domain":"frequency",
+    "test_used":"kruskal_wallis",
+    "levene_p":0.0,
+    "statistic":4338.0100347247,
+    "p_value":0.0,
+    "eta_squared":0.9268095968,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"wv_approx_energy",
+    "domain":"wavelet",
+    "test_used":"kruskal_wallis",
+    "levene_p":0.0,
+    "statistic":3802.0151769394,
+    "p_value":0.0,
+    "eta_squared":0.9184199708,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race"
+    ]
+  },
+  {
+    "feature":"fd_band_0_energy",
+    "domain":"frequency",
+    "test_used":"kruskal_wallis",
+    "levene_p":4.167525263e-188,
+    "statistic":3935.1303955958,
+    "p_value":0.0,
+    "eta_squared":0.9180182977,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"fd_band_3_energy",
+    "domain":"frequency",
+    "test_used":"kruskal_wallis",
+    "levene_p":0.0,
+    "statistic":4586.3826560557,
+    "p_value":0.0,
+    "eta_squared":0.9077736072,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"wv_detail_5_energy",
+    "domain":"wavelet",
+    "test_used":"kruskal_wallis",
+    "levene_p":1.535920027e-238,
+    "statistic":4182.1493157265,
+    "p_value":0.0,
+    "eta_squared":0.8185040607,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"wv_detail_3_energy",
+    "domain":"wavelet",
+    "test_used":"kruskal_wallis",
+    "levene_p":9.549473239e-151,
+    "statistic":3818.1606171345,
+    "p_value":0.0,
+    "eta_squared":0.8090261471,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"fd_spectral_entropy",
+    "domain":"frequency",
+    "test_used":"kruskal_wallis",
+    "levene_p":1.069468094e-185,
+    "statistic":3783.4211574765,
+    "p_value":0.0,
+    "eta_squared":0.7411651264,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"fd_band_1_energy",
+    "domain":"frequency",
+    "test_used":"kruskal_wallis",
+    "levene_p":2.075578411e-195,
+    "statistic":3912.2732513092,
+    "p_value":0.0,
+    "eta_squared":0.7338656564,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"wv_detail_2_energy",
+    "domain":"wavelet",
+    "test_used":"kruskal_wallis",
+    "levene_p":6.306701815e-236,
+    "statistic":3991.7865694406,
+    "p_value":0.0,
+    "eta_squared":0.6982769364,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"wv_energy_entropy",
+    "domain":"wavelet",
+    "test_used":"kruskal_wallis",
+    "levene_p":1.907644962e-198,
+    "statistic":3679.1845001828,
+    "p_value":0.0,
+    "eta_squared":0.6559321558,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"wv_detail_1_std",
+    "domain":"wavelet",
+    "test_used":"kruskal_wallis",
+    "levene_p":0.0,
+    "statistic":4273.7488548691,
+    "p_value":0.0,
+    "eta_squared":0.6058196454,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"fd_band_2_energy",
+    "domain":"frequency",
+    "test_used":"kruskal_wallis",
+    "levene_p":1.987455157e-304,
+    "statistic":2991.5230009289,
+    "p_value":0.0,
+    "eta_squared":0.5698807998,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"td_std",
+    "domain":"time",
+    "test_used":"kruskal_wallis",
+    "levene_p":0.0,
+    "statistic":4187.5289722817,
+    "p_value":0.0,
+    "eta_squared":0.5441302226,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"td_rms",
+    "domain":"time",
+    "test_used":"kruskal_wallis",
+    "levene_p":0.0,
+    "statistic":4188.6971645943,
+    "p_value":0.0,
+    "eta_squared":0.5433439706,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"wv_detail_2_std",
+    "domain":"wavelet",
+    "test_used":"kruskal_wallis",
+    "levene_p":0.0,
+    "statistic":4166.1791417715,
+    "p_value":0.0,
+    "eta_squared":0.5279435899,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"td_peak_to_peak",
+    "domain":"time",
+    "test_used":"kruskal_wallis",
+    "levene_p":0.0,
+    "statistic":4204.3895337458,
+    "p_value":0.0,
+    "eta_squared":0.5059314429,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"td_peak",
+    "domain":"time",
+    "test_used":"kruskal_wallis",
+    "levene_p":0.0,
+    "statistic":4205.4869279225,
+    "p_value":0.0,
+    "eta_squared":0.5048459377,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"fd_total_power",
+    "domain":"frequency",
+    "test_used":"kruskal_wallis",
+    "levene_p":0.0,
+    "statistic":4196.162328444,
+    "p_value":0.0,
+    "eta_squared":0.493749945,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"fd_dominant_freq",
+    "domain":"frequency",
+    "test_used":"kruskal_wallis",
+    "levene_p":2.9741595e-57,
+    "statistic":2698.3368361212,
+    "p_value":0.0,
+    "eta_squared":0.4929694642,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"td_shape_factor",
+    "domain":"time",
+    "test_used":"kruskal_wallis",
+    "levene_p":0.0,
+    "statistic":3607.9132410504,
+    "p_value":0.0,
+    "eta_squared":0.4671738879,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"wv_detail_4_energy",
+    "domain":"wavelet",
+    "test_used":"kruskal_wallis",
+    "levene_p":2.452986483e-206,
+    "statistic":2823.2521746412,
+    "p_value":0.0,
+    "eta_squared":0.4382826572,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"fd_dominant_mag",
+    "domain":"frequency",
+    "test_used":"kruskal_wallis",
+    "levene_p":0.0,
+    "statistic":2811.4737870178,
+    "p_value":0.0,
+    "eta_squared":0.4104849346,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"td_skewness",
+    "domain":"time",
+    "test_used":"kruskal_wallis",
+    "levene_p":7.576072139e-91,
+    "statistic":2795.2419085607,
+    "p_value":0.0,
+    "eta_squared":0.4079269554,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"td_crest_factor",
+    "domain":"time",
+    "test_used":"kruskal_wallis",
+    "levene_p":3.501276108e-291,
+    "statistic":3269.0803691312,
+    "p_value":0.0,
+    "eta_squared":0.380398687,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"td_impulse_factor",
+    "domain":"time",
+    "test_used":"kruskal_wallis",
+    "levene_p":0.0,
+    "statistic":3339.785777203,
+    "p_value":0.0,
+    "eta_squared":0.3617835738,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race"
+    ]
+  },
+  {
+    "feature":"td_clearance_factor",
+    "domain":"time",
+    "test_used":"kruskal_wallis",
+    "levene_p":0.0,
+    "statistic":3393.5447609221,
+    "p_value":0.0,
+    "eta_squared":0.3583491199,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"fd_band_5_energy",
+    "domain":"frequency",
+    "test_used":"kruskal_wallis",
+    "levene_p":0.0,
+    "statistic":3913.5861907075,
+    "p_value":0.0,
+    "eta_squared":0.3452315061,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"wv_detail_4_std",
+    "domain":"wavelet",
+    "test_used":"kruskal_wallis",
+    "levene_p":0.0,
+    "statistic":3705.8809106575,
+    "p_value":0.0,
+    "eta_squared":0.3444372937,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"td_kurtosis",
+    "domain":"time",
+    "test_used":"kruskal_wallis",
+    "levene_p":0.0,
+    "statistic":3099.8797144009,
+    "p_value":0.0,
+    "eta_squared":0.3109995894,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"wv_detail_3_std",
+    "domain":"wavelet",
+    "test_used":"kruskal_wallis",
+    "levene_p":0.0,
+    "statistic":1349.0926051125,
+    "p_value":3.277521225e-292,
+    "eta_squared":0.2630702378,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"fd_band_4_energy",
+    "domain":"frequency",
+    "test_used":"kruskal_wallis",
+    "levene_p":3.021453866e-227,
+    "statistic":3435.7017530002,
+    "p_value":0.0,
+    "eta_squared":0.2148368616,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"fd_spectral_spread",
+    "domain":"frequency",
+    "test_used":"kruskal_wallis",
+    "levene_p":0.0,
+    "statistic":918.3978887859,
+    "p_value":9.043987782e-199,
+    "eta_squared":0.1483129904,
+    "passes_gate":true,
+    "separated_pairs":[
+      "ball vs healthy",
+      "ball vs inner_race",
+      "ball vs outer_race",
+      "healthy vs inner_race",
+      "healthy vs outer_race",
+      "inner_race vs outer_race"
+    ]
+  },
+  {
+    "feature":"wv_approx_std",
+    "domain":"wavelet",
+    "test_used":"kruskal_wallis",
+    "levene_p":3.203330322e-148,
+    "statistic":1982.4015720251,
+    "p_value":0.0,
+    "eta_squared":0.1322340843,
+    "passes_gate":false,
+    "separated_pairs":[
+
+    ]
+  },
+  {
+    "feature":"wv_detail_5_std",
+    "domain":"wavelet",
+    "test_used":"kruskal_wallis",
+    "levene_p":3.114023181e-135,
+    "statistic":591.9038590264,
+    "p_value":5.734659353e-128,
+    "eta_squared":0.0319412693,
+    "passes_gate":false,
+    "separated_pairs":[
+
+    ]
+  }
+]

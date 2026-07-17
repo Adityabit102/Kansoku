@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+/* Kansoku design tokens.
+   Palette: bone #e1decc, purple taupe #474145, ku crimson #e70f0e, black #010101.
+
+   Contrast discipline: crimson on black measures ~4.4:1 — clears WCAG AA for
+   large text, FAILS it for body copy. Crimson is therefore reserved for
+   accents, fault states, large numerals and chart marks. Bone (15.4:1) carries
+   every piece of reading text. */
+@theme {
+  --color-black: #010101;
+  --color-bone: #e1decc;
+  --color-taupe: #474145;
+  --color-crimson: #e70f0e;
+
+  --color-surface: #0a0909;
+  --color-surface-2: #121011;
+  --color-line: #2a2629;
+  --color-muted: #8d8779;
+
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html {
+  color-scheme: dark;
+  background: #010101;
+}
+
+body {
+  background: var(--color-black);
+  color: var(--color-bone);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Fault-class ramp. Crimson is semantically load-bearing here: it reads as
+   fault, so healthy sits deliberately at the opposite end in bone. */
+:root {
+  --c-healthy: #e1decc;
+  --c-ball: #8d8779;
+  --c-inner_race: #c2452f;
+  --c-outer_race: #e70f0e;
+}
+
+::selection { background: var(--color-crimson); color: var(--color-bone); }
+
+/* Keyboard navigation is a stated requirement, so the ring stays visible. */
+:focus-visible {
+  outline: 2px solid var(--color-crimson);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--color-black); }
+::-webkit-scrollbar-thumb {
+  background: var(--color-taupe);
+  border: 2px solid var(--color-black);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover { background: #5c545b; }
+
+.tabular { font-variant-numeric: tabular-nums; }
+
+.grain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
