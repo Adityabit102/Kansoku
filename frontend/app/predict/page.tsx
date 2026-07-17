@@ -92,18 +92,41 @@ function Result({ result }: { result: PredictionResponse }) {
   );
 }
 
+/** Bundled CWRU recordings with known ground truth, so a visitor can test the
+ *  model in one click and check its answer against the label. */
+const DEMOS = [
+  { id: "97", label: "Healthy baseline", truth: "healthy" },
+  { id: "105", label: "Inner race, 0.007″", truth: "inner_race" },
+  { id: "118", label: "Ball, 0.007″", truth: "ball" },
+  { id: "234", label: "Outer race, 0.021″", truth: "outer_race" },
+] as const;
+
 export default function Predict() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [pendingDemo, setPendingDemo] = useState<string | null>(null);
 
-  const mutation = useMutation({ mutationFn: api.predict });
+  const mutation = useMutation({
+    mutationFn: (input: File | string) =>
+      typeof input === "string" ? api.predictDemo(input) : api.predict(input),
+    onSettled: () => setPendingDemo(null),
+  });
 
   const submit = useCallback(
     (file: File | undefined) => {
       if (!file) return;
       setFileName(file.name);
       mutation.mutate(file);
+    },
+    [mutation],
+  );
+
+  const runDemo = useCallback(
+    (demo: (typeof DEMOS)[number]) => {
+      setFileName(`${demo.id}.mat`);
+      setPendingDemo(demo.id);
+      mutation.mutate(demo.id);
     },
     [mutation],
   );
@@ -161,6 +184,25 @@ export default function Predict() {
             e.target.value = "";
           }}
         />
+
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted">No file on hand? Diagnose a bundled recording:</span>
+          {DEMOS.map((demo) => (
+            <button
+              key={demo.id}
+              type="button"
+              onClick={() => runDemo(demo)}
+              disabled={mutation.isPending}
+              className={`rounded-full border px-3 py-1.5 text-xs transition-colors duration-200 ${
+                pendingDemo === demo.id
+                  ? "border-crimson/60 bg-crimson/10 text-bone"
+                  : "border-line text-muted hover:border-taupe hover:text-bone"
+              } ${mutation.isPending ? "cursor-wait opacity-60" : ""}`}
+            >
+              {demo.label}
+            </button>
+          ))}
+        </div>
       </motion.div>
 
       <AnimatePresence mode="wait">
@@ -181,9 +223,8 @@ export default function Predict() {
 
       {!mutation.isSuccess && !mutation.isError && (
         <p className="mt-4 text-xs text-muted">
-          Tip: any raw file from{" "}
-          <code className="font-[family-name:var(--font-mono)]">data/raw/</code> works —
-          97.mat is a healthy baseline, 130.mat an outer-race fault.
+          The demo recordings above carry known ground truth — the diagnosis can be checked
+          against the label on the button.
         </p>
       )}
     </>

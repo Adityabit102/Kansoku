@@ -80,6 +80,8 @@ export default function Leaderboard() {
     cv: r.cv_mean * 100,
     full: r.model_name,
   }));
+  // Floor tracks the data so a retrain with a weaker model never clips a bar.
+  const yFloor = chart ? Math.max(0, Math.floor(Math.min(...chart.map((c) => c.cv)) / 5) * 5 - 5) : 80;
   const active = data?.find((r) => r.model_name === selected);
 
   return (
@@ -111,7 +113,7 @@ export default function Leaderboard() {
                     tickLine={false}
                   />
                   <YAxis
-                    domain={[80, 100]}
+                    domain={[yFloor, 100]}
                     tick={{ fill: "var(--color-muted)", fontSize: 11 }}
                     axisLine={false}
                     tickLine={false}
@@ -140,7 +142,8 @@ export default function Leaderboard() {
               </ResponsiveContainer>
             </div>
             <p className="mt-2 text-xs text-muted">
-              Y-axis starts at 80% to make the spread legible — the full range is 0–100%.
+              Y-axis starts at {yFloor}% to make the spread legible — the full range is
+              0–100%.
             </p>
           </Panel>
 

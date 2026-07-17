@@ -67,11 +67,19 @@ def get_clusters() -> dict:
 
 
 @app.get("/segments")
-def list_segments(limit: int = 40) -> list[dict]:
-    """A sample of segment ids per class, to populate the signal viewer."""
+def list_segments() -> list[dict]:
+    """One representative segment per recording, for the signal viewer.
+
+    Taking the first N windows per class would return near-identical slices of
+    a single recording; one window per (label, severity, load) covers every
+    machine condition in the dataset instead.
+    """
     df = art.feature_frame()
-    per_class = max(1, limit // df["label"].nunique())
-    picks = df.groupby("label", group_keys=False).head(per_class)
+    picks = (
+        df.groupby(["label", "severity", "load_hp"], as_index=False)
+        .head(1)
+        .sort_values(["label", "severity", "load_hp"])
+    )
     return picks[["segment_id", "label", "severity", "load_hp"]].to_dict("records")
 
 
@@ -132,33 +140,11 @@ def _driving_features(feats: dict[str, float], selected: list[str]) -> list[Driv
     ]
 
 
-@app.post("/predict", response_model=PredictionResponse)
-async def predict(file: UploadFile = File(...)) -> PredictionResponse:
-    """Classify an uploaded vibration signal (.mat or .csv).
+def _classify(sig: np.ndarray, t0: float) -> PredictionResponse:
+    """Segment, featurize, and majority-vote a raw signal.
 
-    Signals longer than one window are segmented and majority-voted, which is
-    how a real deployment would treat a continuous capture.
+    Shared by file upload and the demo endpoint so both paths stay identical.
     """
-    t0 = time.perf_counter()
-    raw = await file.read()
-    name = (file.filename or "").lower()
-
-    try:
-        if name.endswith(".mat"):
-            mat = loadmat(io.BytesIO(raw))
-            keys = [k for k in mat if k.endswith("_DE_time")]
-            if not keys:
-                raise ValueError("no *_DE_time channel found in .mat")
-            sig = np.asarray(mat[keys[0]], dtype=np.float64).ravel()
-        elif name.endswith((".csv", ".txt")):
-            sig = np.loadtxt(io.BytesIO(raw), delimiter=",").ravel().astype(np.float64)
-        else:
-            raise ValueError(f"unsupported file type: {file.filename!r}; expected .mat or .csv")
-    except HTTPException:
-        raise
-    except Exception as exc:
-        raise HTTPException(400, f"could not parse signal: {exc}") from exc
-
     if sig.size < WINDOW_SIZE:
         raise HTTPException(
             400, f"signal too short: {sig.size} samples, need at least {WINDOW_SIZE}"
@@ -198,3 +184,49 @@ async def predict(file: UploadFile = File(...)) -> PredictionResponse:
         model_version=manifest["version"],
         latency_ms=(time.perf_counter() - t0) * 1000,
     )
+
+
+@app.post("/predict", response_model=PredictionResponse)
+async def predict(file: UploadFile = File(...)) -> PredictionResponse:
+    """Classify an uploaded vibration signal (.mat or .csv).
+
+    Signals longer than one window are segmented and majority-voted, which is
+    how a real deployment would treat a continuous capture.
+    """
+    t0 = time.perf_counter()
+    raw = await file.read()
+    name = (file.filename or "").lower()
+
+    try:
+        if name.endswith(".mat"):
+            mat = loadmat(io.BytesIO(raw))
+            keys = [k for k in mat if k.endswith("_DE_time")]
+            if not keys:
+                raise ValueError("no *_DE_time channel found in .mat")
+            sig = np.asarray(mat[keys[0]], dtype=np.float64).ravel()
+        elif name.endswith((".csv", ".txt")):
+            sig = np.loadtxt(io.BytesIO(raw), delimiter=",").ravel().astype(np.float64)
+        else:
+            raise ValueError(f"unsupported file type: {file.filename!r}; expected .mat or .csv")
+    except Exception as exc:
+        raise HTTPException(400, f"could not parse signal: {exc}") from exc
+
+    return _classify(sig, t0)
+
+
+@app.get("/predict/demo/{file_id}", response_model=PredictionResponse)
+def predict_demo(file_id: str) -> PredictionResponse:
+    """Diagnose one of the bundled CWRU recordings by id.
+
+    Lets the UI offer one-click demo diagnoses without requiring the visitor to
+    have raw .mat files on hand.
+    """
+    from kansoku.config import DATA_RAW
+    from kansoku.signal.dataset import CWRU_FILES, load_signal
+
+    t0 = time.perf_counter()
+    rec = next((r for r in CWRU_FILES if str(r.file_id) == file_id), None)
+    path = DATA_RAW / f"{file_id}.mat"
+    if rec is None or not path.exists():
+        raise HTTPException(404, f"no recording {file_id}")
+    return _classify(load_signal(path), t0)

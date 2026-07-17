@@ -138,6 +138,27 @@ def test_predict_rejects_unsupported_type():
     assert r.status_code == 400
 
 
+def test_predict_demo_diagnoses_known_recording():
+    """130.mat is a labeled outer-race fault; the demo path must agree."""
+    r = client.get("/predict/demo/130")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["predicted_class"] == "outer_race"
+    assert body["confidence"] > 0.9
+
+
+def test_predict_demo_404_on_unknown_recording():
+    assert client.get("/predict/demo/99999").status_code == 404
+
+
+def test_segments_cover_every_recording_condition():
+    """One representative per (label, severity, load) — 40 distinct recordings."""
+    rows = client.get("/segments").json()
+    conditions = {(r["label"], r["severity"], r["load_hp"]) for r in rows}
+    assert len(rows) == 40
+    assert len(conditions) == 40, "picker must span all machine conditions"
+
+
 def test_predict_latency_under_200ms(csv_signal):
     """The PRD's non-functional requirement, asserted rather than assumed."""
     latencies = []

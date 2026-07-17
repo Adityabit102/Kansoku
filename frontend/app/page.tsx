@@ -6,6 +6,60 @@ import { motion } from "framer-motion";
 import { api, fmtPct } from "@/lib/api";
 import { ENTER, ErrorNote, Panel, PanelTitle, Skeleton, Stat, stagger } from "@/components/ui";
 
+/** Deterministic PRNG so the server- and client-rendered paths match exactly —
+ *  Math.random here would cause a hydration mismatch. */
+function mulberry32(seed: number) {
+  return () => {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Hero signature: a vibration trace that degrades from healthy noise (left)
+ *  into a periodic impact train (right) — the exact signature the platform
+ *  detects. Drawn in once; no looping motion. */
+function HeroWaveform() {
+  const rand = mulberry32(42);
+  const n = 360;
+  const points: string[] = [];
+  for (let i = 0; i < n; i++) {
+    const x = (i / (n - 1)) * 100;
+    const fault = Math.max(0, (i - n * 0.45) / (n * 0.55)); // 0 → 1 across the strip
+    let y = (rand() - 0.5) * 14;
+    if (fault > 0 && i % 24 < 2) y += (rand() > 0.5 ? 1 : -1) * 34 * fault;
+    points.push(`${x.toFixed(2)},${(40 + y).toFixed(2)}`);
+  }
+  return (
+    <svg
+      viewBox="0 0 100 80"
+      preserveAspectRatio="none"
+      className="mt-8 h-16 w-full"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="wave" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0%" stopColor="var(--color-taupe)" />
+          <stop offset="45%" stopColor="var(--color-taupe)" />
+          <stop offset="100%" stopColor="var(--color-crimson)" />
+        </linearGradient>
+      </defs>
+      <motion.polyline
+        points={points.join(" ")}
+        fill="none"
+        stroke="url(#wave)"
+        strokeWidth="0.5"
+        vectorEffect="non-scaling-stroke"
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: 1, opacity: 1 }}
+        transition={{ duration: 1.1, ease: "easeOut" }}
+      />
+    </svg>
+  );
+}
+
 const ROUTES = [
   { href: "/signals", title: "Signals", body: "Raw waveforms and their FFT spectra, per fault class." },
   { href: "/significance", title: "Significance", body: "Which features earn their place in a model, and why." },
@@ -42,6 +96,7 @@ export default function Overview() {
           algorithms are benchmarked on identical recording-grouped splits, and clustering
           runs unlabeled to surface regimes the labels never encoded.
         </p>
+        <HeroWaveform />
       </motion.section>
 
       <div className="mb-12 grid grid-cols-2 gap-3 lg:grid-cols-4">

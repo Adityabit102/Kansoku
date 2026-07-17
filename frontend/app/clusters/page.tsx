@@ -91,7 +91,7 @@ function Scatter({ points, mode }: { points: ClusterPoint[]; mode: ColorMode }) 
       {tip && (
         <div
           className="pointer-events-none absolute z-10 rounded border border-line bg-black/95 px-3 py-2 text-xs"
-          style={{ left: Math.min(tip.x + 12, 640), top: tip.y - 8 }}
+          style={{ left: `min(${tip.x + 12}px, calc(100% - 200px))`, top: tip.y - 8 }}
         >
           <p className="font-[family-name:var(--font-mono)] text-bone">{tip.p.segment_id}</p>
           <p className="mt-1 text-muted">

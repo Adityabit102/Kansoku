@@ -147,11 +147,19 @@ export default function Significance() {
                 <tbody>
                   {rows.map((r: SignificanceRow) => {
                     const open = expanded === r.feature;
+                    // Tukey pairs only exist for features that passed the gate,
+                    // so rejected rows are not expandable — a click that does
+                    // nothing would read as a broken control.
+                    const expandable = r.passes_gate;
                     return (
                       <tr
                         key={r.feature}
-                        onClick={() => setExpanded(open ? null : r.feature)}
-                        className="cursor-pointer border-b border-line/60 align-middle transition-colors duration-200 hover:bg-surface-2"
+                        onClick={
+                          expandable ? () => setExpanded(open ? null : r.feature) : undefined
+                        }
+                        className={`border-b border-line/60 align-middle transition-colors duration-200 ${
+                          expandable ? "cursor-pointer hover:bg-surface-2" : "opacity-60"
+                        }`}
                       >
                         <td className="py-3">
                           <span className="font-[family-name:var(--font-mono)] text-xs text-bone">
@@ -196,7 +204,8 @@ export default function Significance() {
               </table>
             </div>
             <p className="mt-4 text-xs text-muted">
-              Select a row to see which fault-class pairs Tukey HSD says it separates.
+              Select a passing row to see which fault-class pairs Tukey HSD says it
+              separates. Rejected features are dimmed — no post-hoc test is run for them.
             </p>
           </Panel>
 

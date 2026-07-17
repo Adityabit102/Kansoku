@@ -119,6 +119,14 @@ export const api = {
     const [fileId, idx] = segmentId.split("#");
     return get<SignalResponse>(`/signal/${fileId}/${idx}`);
   },
+  predictDemo: async (fileId: string): Promise<PredictionResponse> => {
+    const res = await fetch(`${API}/predict/demo/${fileId}`);
+    if (!res.ok) {
+      const { detail } = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(detail ?? "prediction failed");
+    }
+    return res.json();
+  },
   predict: async (file: File): Promise<PredictionResponse> => {
     const body = new FormData();
     body.append("file", file);
