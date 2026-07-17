@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import * as d3 from "d3";
@@ -9,103 +9,179 @@ import { ENTER, ErrorNote, PageHeader, Panel, PanelTitle, Skeleton, Stat } from 
 
 type ColorMode = "cluster" | "label" | "severity";
 
-/** Identity colors for discovered clusters: the eight dark-mode categorical
+/** Identity colors for discovered clusters: the eight light-mode categorical
  *  slots of the validated default palette, in fixed order, plus a neutral for
  *  the ninth. Nine series in a scatter exceeds what any palette can make
  *  all-pairs CVD-safe, so identity leans on the required secondary encoding:
  *  the legend, per-point tooltips, and the composition panel. */
 const CLUSTER_COLORS = [
-  "#3987e5", "#008300", "#d55181", "#c98500",
-  "#199e70", "#d95926", "#9085e9", "#e66767", "#9aa5a0",
+  "#2a78d6", "#008300", "#e87ba4", "#eda100",
+  "#1baf7a", "#eb6834", "#4a3aa7", "#e34948", "#8a8374",
 ];
 
 /** Ordinal ramp: severity is ordered, so one hue, monotonic lightness (the
- *  default blue sequential steps 250/400/550). Healthy is a neutral state,
+ *  default blue sequential, light-mode steps). Healthy is a neutral state,
  *  not a rung on the ramp. */
 const SEVERITY_COLOR: Record<string, string> = {
-  "0": "#7d938a",
-  "0.007": "#86b6ef",
-  "0.014": "#3987e5",
-  "0.021": "#1c5cab",
+  "0": "#8a8374",
+  "0.007": "#6da7ec",
+  "0.014": "#2a78d6",
+  "0.021": "#184f95",
 };
 
 function pointColor(p: ClusterPoint, mode: ColorMode): string {
   if (mode === "cluster") return CLUSTER_COLORS[p.cluster % CLUSTER_COLORS.length];
   if (mode === "label") return CLASS_COLOR[p.true_label];
-  return SEVERITY_COLOR[String(p.severity)] ?? "#7d938a";
+  return SEVERITY_COLOR[String(p.severity)] ?? "#8a8374";
 }
 
-function Scatter({ points, mode }: { points: ClusterPoint[]; mode: ColorMode }) {
-  const ref = useRef<SVGSVGElement>(null);
+/** 3D PCA scatter on canvas: slow auto-rotation around the vertical axis,
+ *  drag to rotate, hover to identify. The third principal component has been
+ *  computed all along — this view finally spends it. Depth is encoded with
+ *  size and opacity; reduced-motion users get a static view they can drag. */
+function Scatter3D({ points, mode }: { points: ClusterPoint[]; mode: ColorMode }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tip, setTip] = useState<{ x: number; y: number; p: ClusterPoint } | null>(null);
+  const theta = useRef(0.35);
+  const phi = useRef(0.42); // fixed downward tilt, adjustable by vertical drag
+  const dragging = useRef(false);
+  const autoRotate = useRef(true);
+  const mouse = useRef<{ x: number; y: number } | null>(null);
+
+  // Normalize once: center and scale each axis to [-1, 1].
+  const normalized = useMemo(() => {
+    const ext = (k: "pc1" | "pc2" | "pc3") => {
+      const [lo, hi] = d3.extent(points, (p) => p[k]) as [number, number];
+      const mid = (lo + hi) / 2, half = (hi - lo) / 2 || 1;
+      return (v: number) => (v - mid) / half;
+    };
+    const nx = ext("pc1"), ny = ext("pc2"), nz = ext("pc3");
+    return points.map((p) => ({ p, x: nx(p.pc1), y: ny(p.pc2), z: nz(p.pc3) }));
+  }, [points]);
 
   useEffect(() => {
-    const svg = d3.select(ref.current);
-    if (!ref.current) return;
-    const { width } = ref.current.getBoundingClientRect();
-    const height = 460;
-    const margin = 28;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d")!;
+    const dpr = window.devicePixelRatio || 1;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let raf = 0;
 
-    const x = d3
-      .scaleLinear()
-      .domain(d3.extent(points, (d) => d.pc1) as [number, number])
-      .nice()
-      .range([margin, width - margin]);
-    const y = d3
-      .scaleLinear()
-      .domain(d3.extent(points, (d) => d.pc2) as [number, number])
-      .nice()
-      .range([height - margin, margin]);
+    const resize = () => {
+      const { width } = canvas.getBoundingClientRect();
+      canvas.width = width * dpr;
+      canvas.height = 480 * dpr;
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
 
-    svg.selectAll("*").remove();
-    svg.attr("viewBox", `0 0 ${width} ${height}`);
+    const colors = normalized.map(({ p }) => pointColor(p, mode));
 
-    // Faint grid, no axis chrome — the axes are PCA components, and their
-    // absolute values carry no physical meaning worth labelling heavily.
-    const grid = svg.append("g").attr("stroke", "var(--color-line)").attr("stroke-opacity", 0.5);
-    x.ticks(6).forEach((t) =>
-      grid.append("line").attr("x1", x(t)).attr("x2", x(t)).attr("y1", margin).attr("y2", height - margin),
-    );
-    y.ticks(6).forEach((t) =>
-      grid.append("line").attr("y1", y(t)).attr("y2", y(t)).attr("x1", margin).attr("x2", width - margin),
-    );
+    const draw = () => {
+      if (autoRotate.current && !dragging.current && !reduced) theta.current += 0.0035;
 
-    svg
-      .append("g")
-      .selectAll("circle")
-      .data(points)
-      .join("circle")
-      .attr("cx", (d) => x(d.pc1))
-      .attr("cy", (d) => y(d.pc2))
-      .attr("r", 2.4)
-      .attr("fill", (d) => pointColor(d, mode))
-      .attr("fill-opacity", 0.65)
-      .on("mouseenter", function (event, d) {
-        d3.select(this).attr("r", 4.5).attr("fill-opacity", 1);
-        const [mx, my] = d3.pointer(event, ref.current);
-        setTip({ x: mx, y: my, p: d });
-      })
-      .on("mouseleave", function () {
-        d3.select(this).attr("r", 2.4).attr("fill-opacity", 0.65);
-        setTip(null);
+      const W = canvas.width, H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+      const cx = W / 2, cy = H / 2;
+      const scale = Math.min(W, H) * 0.36;
+      const ct = Math.cos(theta.current), st = Math.sin(theta.current);
+      const cp = Math.cos(phi.current), sp = Math.sin(phi.current);
+
+      // Project, then paint back-to-front so nearer points overdraw farther.
+      const projected = normalized.map(({ p, x, y, z }, i) => {
+        const rx = x * ct + z * st;
+        const rz = -x * st + z * ct;
+        const ry = y * cp - rz * sp;
+        const depth = y * sp + rz * cp; // toward viewer
+        const persp = 1 / (1.9 - depth * 0.55);
+        return { p, i, sx: cx + rx * scale * persp, sy: cy - ry * scale * persp, depth };
       });
-  }, [points, mode]);
+      projected.sort((a, b) => a.depth - b.depth);
+
+      for (const q of projected) {
+        const t = (q.depth + 1) / 2; // 0 far → 1 near
+        ctx.globalAlpha = 0.25 + t * 0.6;
+        ctx.fillStyle = colors[q.i];
+        ctx.beginPath();
+        ctx.arc(q.sx, q.sy, (1.1 + t * 1.9) * dpr, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+
+      // Hover picking: nearest projected point within 10px, favoring nearer ones.
+      if (mouse.current) {
+        const mx = mouse.current.x * dpr, my = mouse.current.y * dpr;
+        let best: (typeof projected)[number] | null = null;
+        let bestD = (10 * dpr) ** 2;
+        for (const q of projected) {
+          const d = (q.sx - mx) ** 2 + (q.sy - my) ** 2;
+          if (d < bestD) { bestD = d; best = q; }
+        }
+        if (best) {
+          ctx.strokeStyle = "#2b2724";
+          ctx.lineWidth = 1.5 * dpr;
+          ctx.beginPath();
+          ctx.arc(best.sx, best.sy, 5 * dpr, 0, Math.PI * 2);
+          ctx.stroke();
+          setTip({ x: best.sx / dpr, y: best.sy / dpr, p: best.p });
+        } else setTip(null);
+      }
+
+      raf = requestAnimationFrame(draw);
+    };
+    raf = requestAnimationFrame(draw);
+    return () => { cancelAnimationFrame(raf); ro.disconnect(); };
+  }, [normalized, mode]);
+
+  const onPointerDown = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
+    dragging.current = true;
+    autoRotate.current = false;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }, []);
+  const onPointerMove = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    mouse.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    if (dragging.current) {
+      theta.current += e.movementX * 0.006;
+      phi.current = Math.max(-1.2, Math.min(1.2, phi.current + e.movementY * 0.004));
+    }
+  }, []);
+  const onPointerUp = useCallback(() => { dragging.current = false; }, []);
+  const onPointerLeave = useCallback(() => {
+    dragging.current = false;
+    mouse.current = null;
+    setTip(null);
+  }, []);
 
   return (
     <div className="relative">
-      <svg ref={ref} className="h-[460px] w-full" role="img" aria-label="PCA projection of segments" />
+      <canvas
+        ref={canvasRef}
+        className="h-[480px] w-full cursor-grab touch-none active:cursor-grabbing"
+        role="img"
+        aria-label="Rotating 3D PCA projection of segments; drag to rotate"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerLeave={onPointerLeave}
+        onDoubleClick={() => { autoRotate.current = true; }}
+      />
       {tip && (
         <div
-          className="pointer-events-none absolute z-10 rounded border border-line bg-canvas/95 px-3 py-2 text-xs"
-          style={{ left: `min(${tip.x + 12}px, calc(100% - 200px))`, top: tip.y - 8 }}
+          className="pointer-events-none absolute z-10 rounded border border-line bg-surface/95 px-3 py-2 text-xs plate"
+          style={{ left: `min(${tip.x + 14}px, calc(100% - 200px))`, top: tip.y - 8 }}
         >
-          <p className="font-[family-name:var(--font-mono)] text-sand">{tip.p.segment_id}</p>
+          <p className="font-[family-name:var(--font-mono)] text-ink">{tip.p.segment_id}</p>
           <p className="mt-1 text-muted">
             cluster {tip.p.cluster} · {CLASS_LABEL[tip.p.true_label]}
             {tip.p.severity > 0 && ` · ${tip.p.severity}″`} · {tip.p.load_hp} hp
           </p>
         </div>
       )}
+      <p className="pointer-events-none absolute bottom-2 right-3 text-[10px] uppercase tracking-wider text-muted">
+        drag to rotate · double-click to resume spin
+      </p>
     </div>
   );
 }
@@ -139,8 +215,7 @@ function SilhouetteSweep({
     svg.selectAll("*").remove();
     svg.attr("viewBox", `0 0 ${width} ${height}`);
 
-    // Inertia (elbow) recedes in the line color; silhouette carries the story
-    // in teal; chosen k gets a marker.
+    // Inertia (elbow) recedes in tan; silhouette carries the story in red.
     const lineIn = d3
       .line<(typeof sweep)[number]>()
       .x((s) => x(s.k)!)
@@ -153,9 +228,9 @@ function SilhouetteSweep({
       .curve(d3.curveMonotoneX);
 
     svg.append("path").datum(sweep).attr("d", lineIn).attr("fill", "none")
-      .attr("stroke", "var(--color-line)").attr("stroke-width", 1.5);
+      .attr("stroke", "var(--color-tan)").attr("stroke-width", 1.5);
     const silPath = svg.append("path").datum(sweep).attr("d", lineSil).attr("fill", "none")
-      .attr("stroke", "var(--color-teal-bright)").attr("stroke-width", 1.8);
+      .attr("stroke", "var(--color-accent)").attr("stroke-width", 1.8);
 
     // Draw-in on first paint only; 500ms, ease-out.
     const len = (silPath.node() as SVGPathElement).getTotalLength();
@@ -170,10 +245,10 @@ function SilhouetteSweep({
     const chosenPt = sweep.find((s) => s.k === chosen)!;
     svg.append("circle")
       .attr("cx", x(chosen)!).attr("cy", ySil(chosenPt.silhouette)).attr("r", 4)
-      .attr("fill", "var(--color-teal-bright)");
+      .attr("fill", "var(--color-accent)");
     svg.append("text")
       .attr("x", x(chosen)!).attr("y", ySil(chosenPt.silhouette) - 10)
-      .attr("text-anchor", "middle").attr("fill", "var(--color-sand)")
+      .attr("text-anchor", "middle").attr("fill", "var(--color-ink)")
       .attr("font-size", 11).attr("font-family", "var(--font-mono)")
       .text(`k=${chosen}`);
 
@@ -211,10 +286,10 @@ export default function Clusters() {
     <>
       <PageHeader eyebrow="Unsupervised discovery" title="Cluster explorer">
         K-means ran on the gated feature space with{" "}
-        <span className="text-sand">no access to labels</span>, and peak silhouette chose
-        k = {data?.chosen_k ?? "…"} — more than the 4 labeled classes. Switch the coloring
-        below and the story appears: the extra clusters are{" "}
-        <span className="text-sand">fault severity</span>, a physical dimension the labels
+        <span className="text-ink">no access to labels</span>, and peak silhouette chose
+        k = {data?.chosen_k ?? "…"} — more than the 4 labeled classes. Rotate the
+        projection and switch the coloring: the extra clusters are{" "}
+        <span className="text-ink">fault severity</span>, a physical dimension the labels
         never encoded.
       </PageHeader>
 
@@ -241,8 +316,8 @@ export default function Clusters() {
 
           <Panel index={1} className="mb-3">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-              <h2 className="text-sm font-medium text-sand">
-                PCA projection <span className="text-muted">· PC1 × PC2</span>
+              <h2 className="text-sm font-medium text-ink">
+                PCA projection <span className="text-muted">· PC1 × PC2 × PC3</span>
               </h2>
               <div className="flex gap-1" role="group" aria-label="Color points by">
                 {(["cluster", "label", "severity"] as const).map((m) => (
@@ -252,8 +327,8 @@ export default function Clusters() {
                     aria-pressed={mode === m}
                     className={`rounded-full border px-3 py-1 text-[11px] capitalize transition-colors duration-200 ${
                       mode === m
-                        ? "border-teal-bright/50 bg-teal/20 text-sand"
-                        : "border-line text-muted hover:border-teal/60 hover:text-sand"
+                        ? "border-accent/50 bg-accent/10 text-ink"
+                        : "border-line text-muted hover:border-accent/50 hover:text-ink"
                     }`}
                   >
                     by {m}
@@ -261,7 +336,7 @@ export default function Clusters() {
                 ))}
               </div>
             </div>
-            <Scatter points={data.points} mode={mode} />
+            <Scatter3D points={data.points} mode={mode} />
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
               {legend.map((l) => (
                 <span key={l.label} className="flex items-center gap-1.5 text-[11px] text-muted">
@@ -274,7 +349,7 @@ export default function Clusters() {
 
           <div className="grid gap-3 lg:grid-cols-2">
             <Panel index={2}>
-              <PanelTitle hint="teal: silhouette · dim: inertia">
+              <PanelTitle hint="red: silhouette · tan: inertia">
                 Why k = {data.chosen_k}
               </PanelTitle>
               <SilhouetteSweep sweep={data.sweep} chosen={data.chosen_k} />

@@ -104,7 +104,9 @@ Or without Docker: `uvicorn kansoku.api.main:app --port 8000` and `npm run dev` 
 
 ## Design
 
-An "instrument shop" theme built from four brand colors that map onto the subject literally: pine `#004437` is machine-shop enamel (surfaces), sand `#fbca89` is the brass of gauge dials (reading text, 10.8:1 on the canvas), teal `#13737a` is oscilloscope phosphor (everything interactive), and ember `#88393c` is oxide — rust, which is what a failing bearing produces (fault states). Raw teal and ember sit near 2:1 contrast, so they only ever appear as fills and borders; derived bright variants (5.8:1 / 6.4:1, WCAG AA) carry any colored text. Chart series use a CVD-validated categorical palette rather than the brand hues — identity in a scatter must survive colorblind viewing, and warm brand ramps cannot. Type is Archivo + IBM Plex Mono. Motion is one system: ≤ 280 ms, ease-out, opacity + ≤ 8px translate, disabled under `prefers-reduced-motion`.
+An "engineer's report" theme: cream `#F2EBE2` paper as the ground, near-white panels mounted like plates (layered contact + ambient shadows), tan `#D2B48C` hairlines as rules, sage `#8F9779` as the instrument green of *within tolerance*, and brick red `#A52A2A` as the inspector's pen — carrying both interaction and fault semantics, because on a report the red ink is what you must read. Measured contrast: ink 12.5:1, muted 4.9:1, red 6.6:1, sage-deep 5.7:1 — all AA; raw tan and sage never carry text. Chart series use a CVD-validated categorical palette rather than the brand hues — identity in a scatter must survive colorblind viewing. Type is Archivo + IBM Plex Mono.
+
+Motion is two disciplined layers: 2D — ≤ 280 ms ease-out entrances, opacity + ≤ 8px translate, disabled under `prefers-reduced-motion`; 3D — a mouse-tracking perspective tilt on cards, and the cluster explorer's rotating PCA projection: a canvas-rendered, drag-to-rotate 3D scatter of all 5,886 segments across PC1×PC2×PC3, with depth-encoded size/opacity and hover identification. The third component was computed all along; the 3D view is what finally spends it.
 
 ## Docs
 

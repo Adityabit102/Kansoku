@@ -7,10 +7,10 @@ import { api, CLASS_LABEL, fmtPct, type PredictionResponse } from "@/lib/api";
 import { PageHeader, Panel, PanelTitle } from "@/components/ui";
 
 function ProbabilityRow({ cls, p, isTop }: { cls: string; p: number; isTop: boolean }) {
-  const topColor = cls === "healthy" ? "var(--color-teal-bright)" : "var(--color-ember-bright)";
+  const topColor = cls === "healthy" ? "var(--color-sage)" : "var(--color-accent)";
   return (
     <div className="flex items-center gap-3">
-      <span className={`w-24 shrink-0 text-xs ${isTop ? "text-sand" : "text-muted"}`}>
+      <span className={`w-24 shrink-0 text-xs ${isTop ? "text-ink" : "text-muted"}`}>
         {CLASS_LABEL[cls] ?? cls}
       </span>
       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-2">
@@ -25,7 +25,7 @@ function ProbabilityRow({ cls, p, isTop }: { cls: string; p: number; isTop: bool
           className="h-full w-full"
         />
       </div>
-      <span className="tabular w-16 shrink-0 text-right font-[family-name:var(--font-mono)] text-xs text-sand">
+      <span className="tabular w-16 shrink-0 text-right font-[family-name:var(--font-mono)] text-xs text-ink">
         {fmtPct(p)}
       </span>
     </div>
@@ -47,7 +47,7 @@ function Result({ result }: { result: PredictionResponse }) {
         <p className="text-[11px] uppercase tracking-[0.14em] text-muted">Diagnosis</p>
         <p
           className={`mt-2 text-4xl font-semibold tracking-tight ${
-            isHealthy ? "text-teal-bright" : "text-ember-bright"
+            isHealthy ? "text-sage-deep" : "text-accent"
           }`}
         >
           {CLASS_LABEL[result.predicted_class]}
@@ -70,7 +70,7 @@ function Result({ result }: { result: PredictionResponse }) {
           {result.driving_features.map((f) => (
             <div key={f.name} className="flex items-center justify-between gap-4">
               <div className="min-w-0">
-                <p className="truncate font-[family-name:var(--font-mono)] text-xs text-sand">
+                <p className="truncate font-[family-name:var(--font-mono)] text-xs text-ink">
                   {f.name}
                 </p>
                 <p className="text-[11px] text-muted">
@@ -135,8 +135,8 @@ export default function Predict() {
   return (
     <>
       <PageHeader eyebrow="Inference" title="Diagnose a signal">
-        Upload a raw vibration capture — a CWRU-format <span className="text-sand">.mat</span>{" "}
-        or a single-column <span className="text-sand">.csv</span> of accelerometer samples
+        Upload a raw vibration capture — a CWRU-format <span className="text-ink">.mat</span>{" "}
+        or a single-column <span className="text-ink">.csv</span> of accelerometer samples
         (≥ 2048 values at 12 kHz). Longer captures are segmented and majority-voted, the way
         a deployment would treat a continuous recording.
       </PageHeader>
@@ -163,12 +163,12 @@ export default function Predict() {
           disabled={mutation.isPending}
           className={`flex w-full flex-col items-center justify-center rounded-lg border border-dashed px-6 py-14 transition-colors duration-200 ${
             dragging
-              ? "border-teal-bright/70 bg-teal/10"
-              : "border-line bg-surface hover:border-teal/60"
+              ? "border-accent/70 bg-accent/10"
+              : "border-line bg-surface hover:border-accent/50"
           } ${mutation.isPending ? "cursor-wait opacity-60" : "cursor-pointer"}`}
         >
-          <span className="text-2xl text-teal-bright">{mutation.isPending ? "…" : "⌾"}</span>
-          <span className="mt-3 text-sm text-sand">
+          <span className="text-2xl text-accent">{mutation.isPending ? "…" : "⌾"}</span>
+          <span className="mt-3 text-sm text-ink">
             {mutation.isPending
               ? `Analyzing ${fileName ?? "signal"}`
               : "Drop a signal file, or click to browse"}
@@ -196,8 +196,8 @@ export default function Predict() {
               disabled={mutation.isPending}
               className={`rounded-full border px-3 py-1.5 text-xs transition-colors duration-200 ${
                 pendingDemo === demo.id
-                  ? "border-teal-bright/60 bg-teal/20 text-sand"
-                  : "border-line text-muted hover:border-teal/60 hover:text-sand"
+                  ? "border-accent/60 bg-accent/10 text-ink"
+                  : "border-line text-muted hover:border-accent/50 hover:text-ink"
               } ${mutation.isPending ? "cursor-wait opacity-60" : ""}`}
             >
               {demo.label}
@@ -213,9 +213,9 @@ export default function Predict() {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="mb-3 rounded-lg border border-ember-bright/40 bg-ember/15 p-4"
+            className="mb-3 rounded-lg border border-accent/40 bg-accent/10 p-4"
           >
-            <p className="text-sm text-sand">Could not diagnose this file</p>
+            <p className="text-sm text-ink">Could not diagnose this file</p>
             <p className="mt-1 text-xs text-muted">{(mutation.error as Error).message}</p>
           </motion.div>
         )}

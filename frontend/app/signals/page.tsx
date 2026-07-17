@@ -12,7 +12,7 @@ function LinePlot({
   height = 240,
   xLabel,
   yLabel,
-  color = "var(--color-sand)",
+  color = "var(--color-ink)",
   animate = true,
 }: {
   xs: number[];
@@ -156,8 +156,8 @@ export default function Signals() {
                           }
                           className={`rounded border px-2 py-1 font-[family-name:var(--font-mono)] text-[10px] transition-colors duration-200 ${
                             isActive
-                              ? "border-teal-bright/60 bg-teal/20 text-sand"
-                              : "border-line text-muted hover:border-teal/60 hover:text-sand"
+                              ? "border-accent/60 bg-accent/10 text-ink"
+                              : "border-line text-muted hover:border-accent/50 hover:text-ink"
                           }`}
                         >
                           {s.segment_id}
@@ -209,7 +209,7 @@ export default function Signals() {
                 ys={signal.data.fft_magnitude}
                 xLabel="frequency (Hz)"
                 yLabel="|X(f)|"
-                color="var(--color-teal-bright)"
+                color="var(--color-accent)"
               />
             )}
             <p className="mt-2 text-xs leading-relaxed text-muted">

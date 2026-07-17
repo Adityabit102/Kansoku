@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#01251e"/>
-  <text x="32" y="43" font-family="Hiragino Mincho ProN, Yu Mincho, serif" font-size="34" text-anchor="middle" fill="#fbca89">観</text>
-  <rect x="14" y="52" width="36" height="2" rx="1" fill="#13737a"/>
+  <rect width="64" height="64" rx="14" fill="#f2ebe2"/>
+  <text x="32" y="43" font-family="Hiragino Mincho ProN, Yu Mincho, serif" font-size="34" text-anchor="middle" fill="#a52a2a">観</text>
+  <rect x="14" y="52" width="36" height="2" rx="1" fill="#8f9779"/>
 </svg>

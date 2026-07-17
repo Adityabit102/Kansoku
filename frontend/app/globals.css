@@ -1,61 +1,62 @@
 @import "tailwindcss";
 
-/* Kansoku design tokens — "instrument shop" theme.
-   Brand palette: sand #fbca89, pine #004437, teal #13737a, ember #88393c.
+/* Kansoku design tokens — "engineer's report" theme.
+   Brand palette: cream #F2EBE2, tan #D2B48C, sage #8F9779, brick #A52A2A.
 
-   The palette maps onto the subject literally: pine is machine-shop enamel,
-   sand is the brass of gauge dials, teal is oscilloscope phosphor, ember is
-   oxide — rust, which is what a failing bearing produces. Hence the semantic
-   assignment: teal = instrument/interactive, ember = fault, sand = reading
-   text, pine = structure.
+   The reference is a marked-up engineering report: cream paper as the ground,
+   near-white panels like mounted plates, tan hairlines as rules, sage as the
+   instrument green of "within tolerance", and brick red as the inspector's pen
+   — the color of both emphasis and findings. Red carries interaction AND fault
+   semantics deliberately: on a report, the red ink is what you must read.
 
-   Contrast discipline (measured): sand on canvas 10.8:1, muted 6.5:1,
-   teal-bright 5.8:1, ember-bright 6.4:1 — all clear WCAG AA for body text.
-   Raw teal #13737a and ember #88393c sit near 2:1 on these surfaces, so they
-   are fill/border colors only and never carry text. */
+   Contrast (measured): ink 12.5:1, muted 5.6:1, brick 5.9:1, sage-deep 5.1:1
+   on the canvas — all clear WCAG AA for body text. Raw tan (~1.7:1) and sage
+   (~2.4:1) are fills, rules, and large decorative marks only. */
 @theme {
-  --color-canvas: #01251e;
-  --color-pine: #004437;
-  --color-sand: #fbca89;
-  --color-teal: #13737a;
-  --color-ember: #88393c;
+  --color-canvas: #f2ebe2;
+  --color-cream: #f2ebe2;
+  --color-tan: #d2b48c;
+  --color-sage: #8f9779;
+  --color-accent: #a52a2a;
 
-  --color-surface: #02352b;
-  --color-surface-2: #004437;
-  --color-line: #0d4d42;
-  --color-muted: #b5a184;
-  --color-teal-bright: #2caaa4;
-  --color-ember-bright: #e08b85;
+  --color-surface: #faf6ee;
+  --color-surface-2: #eae0ce;
+  --color-line: #dcc9a8;
+  --color-ink: #2b2724;
+  --color-muted: #6d6251;
+  --color-accent-deep: #7e1f1f;
+  --color-sage-deep: #5c6549;
 
   --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html {
-  color-scheme: dark;
-  background: #01251e;
+  color-scheme: light;
+  background: #f2ebe2;
 }
 
 body {
   background: var(--color-canvas);
-  color: var(--color-sand);
+  color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
 }
 
-/* Chart series for fault classes — the four dark-mode categorical slots from
-   the validated default palette (all-pairs CVD-checked; legends and tooltips
-   provide the required secondary encoding). Brand colors stay on chrome. */
+/* Chart series for fault classes — the four light-mode categorical slots from
+   the validated default palette (all-pairs CVD-checked on this surface; the
+   two low-contrast slots are relieved by legends and tooltips as documented).
+   Brand colors stay on chrome. */
 :root {
   --c-healthy: #008300;
-  --c-ball: #3987e5;
-  --c-inner_race: #d55181;
-  --c-outer_race: #c98500;
+  --c-ball: #2a78d6;
+  --c-inner_race: #e87ba4;
+  --c-outer_race: #eda100;
 }
 
-::selection { background: var(--color-teal); color: var(--color-sand); }
+::selection { background: var(--color-accent); color: var(--color-cream); }
 
 /* Keyboard navigation is a stated requirement, so the ring stays visible. */
 :focus-visible {
-  outline: 2px solid var(--color-teal-bright);
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
   border-radius: 3px;
 }
@@ -63,22 +64,30 @@ body {
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: var(--color-canvas); }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-pine);
+  background: var(--color-tan);
   border: 2px solid var(--color-canvas);
   border-radius: 999px;
 }
-::-webkit-scrollbar-thumb:hover { background: var(--color-teal); }
+::-webkit-scrollbar-thumb:hover { background: var(--color-sage); }
 
 .tabular { font-variant-numeric: tabular-nums; }
 
+/* Paper texture on the cream ground. */
 .grain::before {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 50;
-  opacity: 0.025;
+  opacity: 0.03;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Mounted-plate shadow for panels: one tight contact line, one soft ambient. */
+.plate {
+  box-shadow:
+    0 1px 2px rgb(43 39 36 / 0.05),
+    0 10px 28px -14px rgb(43 39 36 / 0.16);
 }
 
 @media (prefers-reduced-motion: reduce) {

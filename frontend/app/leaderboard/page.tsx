@@ -39,8 +39,8 @@ function ConfusionMatrix({ row }: { row: LeaderboardRow }) {
               </th>
               {r.map((v, j) => {
                 const correct = i === j;
-                // Intensity encodes count; ember (oxide) marks misclassification,
-                // sand marks correct — so errors are what the eye finds first.
+                // Intensity encodes count; red ink marks misclassification, sage
+                // marks correct — errors are what the inspector reads first.
                 const alpha = max ? v / max : 0;
                 return (
                   <td
@@ -50,10 +50,10 @@ function ConfusionMatrix({ row }: { row: LeaderboardRow }) {
                     style={{
                       background: v
                         ? correct
-                          ? `color-mix(in oklab, var(--color-sand) ${alpha * 22}%, var(--color-surface-2))`
-                          : `color-mix(in oklab, var(--color-ember-bright) ${Math.max(alpha * 100, 32)}%, var(--color-surface-2))`
+                          ? `color-mix(in oklab, var(--color-sage) ${20 + alpha * 45}%, var(--color-surface))`
+                          : `color-mix(in oklab, var(--color-accent) ${Math.max(alpha * 70, 22)}%, var(--color-surface))`
                         : "var(--color-surface-2)",
-                      color: v ? "var(--color-sand)" : "#1d4a3f",
+                      color: v ? "var(--color-ink)" : "#d8ccb8",
                     }}
                   >
                     {v}
@@ -88,7 +88,7 @@ export default function Leaderboard() {
     <>
       <PageHeader eyebrow="Benchmark" title="Model leaderboard">
         Six algorithms, one seeded split, identical gated features. Ranked by{" "}
-        <span className="text-sand">cross-validated mean</span>, not single-holdout accuracy —
+        <span className="text-ink">cross-validated mean</span>, not single-holdout accuracy —
         the holdout is only ~8 recordings, and an easy draw hands a weaker model a perfect
         score. The CV column is the number worth trusting.
       </PageHeader>
@@ -127,14 +127,14 @@ export default function Leaderboard() {
                       borderRadius: 8,
                       fontSize: 12,
                     }}
-                    labelStyle={{ color: "var(--color-sand)" }}
+                    labelStyle={{ color: "var(--color-ink)" }}
                     formatter={(v) => [`${Number(v).toFixed(2)}%`, "CV accuracy"]}
                   />
                   <Bar dataKey="cv" radius={[3, 3, 0, 0]} animationDuration={550}>
                     {chart?.map((entry, i) => (
                       <Cell
                         key={entry.full}
-                        fill={i === 0 ? "var(--color-teal-bright)" : "var(--color-line)"}
+                        fill={i === 0 ? "var(--color-accent)" : "var(--color-line)"}
                       />
                     ))}
                   </Bar>
@@ -179,11 +179,11 @@ export default function Leaderboard() {
                         }`}
                       >
                         <td className="py-3.5">
-                          <span className={isOpen ? "text-teal-bright" : "text-sand"}>
+                          <span className={isOpen ? "text-accent" : "text-ink"}>
                             {r.model_name}
                           </span>
                         </td>
-                        <td className="tabular py-3.5 text-right font-[family-name:var(--font-mono)] text-sand">
+                        <td className="tabular py-3.5 text-right font-[family-name:var(--font-mono)] text-ink">
                           {fmtPct(r.cv_mean)}{" "}
                           <span className="text-muted">± {(r.cv_std * 100).toFixed(2)}</span>
                         </td>
@@ -237,7 +237,7 @@ export default function Leaderboard() {
                         <tbody className="font-[family-name:var(--font-mono)]">
                           {Object.entries(active.per_class).map(([cls, m]) => (
                             <tr key={cls} className="border-t border-line/50">
-                              <td className="py-2 font-[family-name:var(--font-archivo)] text-sand">
+                              <td className="py-2 font-[family-name:var(--font-archivo)] text-ink">
                                 {CLASS_LABEL[cls] ?? cls}
                               </td>
                               <td className="tabular py-2 text-right text-muted">
@@ -246,7 +246,7 @@ export default function Leaderboard() {
                               <td className="tabular py-2 text-right text-muted">
                                 {m.recall.toFixed(3)}
                               </td>
-                              <td className="tabular py-2 text-right text-sand">
+                              <td className="tabular py-2 text-right text-ink">
                                 {m.f1.toFixed(3)}
                               </td>
                               <td className="tabular py-2 text-right text-muted">{m.support}</td>
