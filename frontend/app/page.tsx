@@ -4,7 +4,17 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { api, fmtPct } from "@/lib/api";
-import { ENTER, ErrorNote, Panel, PanelTitle, Skeleton, Stat, TiltCard, stagger } from "@/components/ui";
+import { Bearing3D } from "@/components/Bearing3D";
+import {
+  EASE,
+  ErrorNote,
+  Panel,
+  PanelTitle,
+  Skeleton,
+  Stat,
+  TiltCard,
+  stagger,
+} from "@/components/ui";
 
 /** Deterministic PRNG so the server- and client-rendered paths match exactly —
  *  Math.random here would cause a hydration mismatch. */
@@ -20,25 +30,20 @@ function mulberry32(seed: number) {
 
 /** Hero signature: a vibration trace that degrades from healthy noise (left)
  *  into a periodic impact train (right) — the exact signature the platform
- *  detects. Drawn in once; no looping motion. */
+ *  detects. Drawn in once. */
 function HeroWaveform() {
   const rand = mulberry32(42);
   const n = 360;
   const points: string[] = [];
   for (let i = 0; i < n; i++) {
     const x = (i / (n - 1)) * 100;
-    const fault = Math.max(0, (i - n * 0.45) / (n * 0.55)); // 0 → 1 across the strip
+    const fault = Math.max(0, (i - n * 0.45) / (n * 0.55));
     let y = (rand() - 0.5) * 14;
     if (fault > 0 && i % 24 < 2) y += (rand() > 0.5 ? 1 : -1) * 34 * fault;
     points.push(`${x.toFixed(2)},${(40 + y).toFixed(2)}`);
   }
   return (
-    <svg
-      viewBox="0 0 100 80"
-      preserveAspectRatio="none"
-      className="mt-8 h-16 w-full"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 100 80" preserveAspectRatio="none" className="mt-10 h-16 w-full" aria-hidden="true">
       <defs>
         <linearGradient id="wave" x1="0" x2="1" y1="0" y2="0">
           <stop offset="0%" stopColor="var(--color-sage)" />
@@ -54,16 +59,47 @@ function HeroWaveform() {
         vectorEffect="non-scaling-stroke"
         initial={{ pathLength: 0, opacity: 0 }}
         animate={{ pathLength: 1, opacity: 1 }}
-        transition={{ duration: 1.1, ease: "easeOut" }}
+        transition={{ duration: 1.6, ease: "easeOut", delay: 0.5 }}
       />
     </svg>
+  );
+}
+
+/** Headline words rise one by one from behind a baseline clip. */
+function StaggeredTitle() {
+  const words = ["Bearing", "faults,", "diagnosed", "and"];
+  return (
+    <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight text-ink md:text-[3.4rem]">
+      {words.map((w, i) => (
+        <span key={w} className="inline-block overflow-hidden pb-1 align-bottom">
+          <motion.span
+            className="inline-block"
+            initial={{ y: "110%" }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.6, ease: EASE, delay: 0.08 + i * 0.07 }}
+          >
+            {w}&nbsp;
+          </motion.span>
+        </span>
+      ))}
+      <span className="inline-block overflow-hidden pb-1 align-bottom">
+        <motion.span
+          className="inline-block text-accent"
+          initial={{ y: "110%" }}
+          animate={{ y: 0 }}
+          transition={{ duration: 0.6, ease: EASE, delay: 0.08 + words.length * 0.07 }}
+        >
+          justified.
+        </motion.span>
+      </span>
+    </h1>
   );
 }
 
 const ROUTES = [
   { href: "/signals", title: "Signals", body: "Raw waveforms and their FFT spectra, per fault class." },
   { href: "/significance", title: "Significance", body: "Which features earn their place in a model, and why." },
-  { href: "/clusters", title: "Clusters", body: "Fault regimes discovered without labels." },
+  { href: "/clusters", title: "Clusters", body: "Fault regimes discovered without labels — in rotating 3D." },
   { href: "/leaderboard", title: "Leaderboard", body: "Six algorithms, one split, ranked honestly." },
   { href: "/predict", title: "Diagnose", body: "Upload a signal and get a grounded classification." },
 ];
@@ -83,21 +119,44 @@ export default function Overview() {
 
   return (
     <>
-      <motion.section {...ENTER} className="mb-12 max-w-3xl">
-        <p className="mb-3 text-[11px] uppercase tracking-[0.22em] text-accent">
-          観測 · Observation
-        </p>
-        <h1 className="text-4xl font-semibold leading-[1.1] tracking-tight text-ink md:text-5xl">
-          Bearing faults, diagnosed and <span className="text-accent">justified</span>.
-        </h1>
-        <p className="mt-5 text-[15px] leading-relaxed text-muted">
-          Kansoku classifies bearing faults from raw vibration signals — and defends every
-          step. Features must pass an effect-size gate before any model sees them, six
-          algorithms are benchmarked on identical recording-grouped splits, and clustering
-          runs unlabeled to surface regimes the labels never encoded.
-        </p>
-        <HeroWaveform />
-      </motion.section>
+      <section className="mb-14 grid items-center gap-8 lg:grid-cols-[1fr_auto]">
+        <div>
+          <motion.p
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, ease: EASE }}
+            className="mb-4 text-[11px] uppercase tracking-[0.24em] text-accent"
+          >
+            観測 · Observation
+          </motion.p>
+          <StaggeredTitle />
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, ease: EASE, delay: 0.5 }}
+            className="mt-6 max-w-2xl text-[15px] leading-relaxed text-muted"
+          >
+            Kansoku classifies bearing faults from raw vibration signals — and defends every
+            step. Features must pass an effect-size gate before any model sees them, six
+            algorithms are benchmarked on identical recording-grouped splits, and clustering
+            runs unlabeled to surface regimes the labels never encoded.
+          </motion.p>
+          <HeroWaveform />
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.85, rotate: -8 }}
+          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+          transition={{ duration: 0.9, ease: EASE, delay: 0.3 }}
+          className="mx-auto hidden lg:block"
+          aria-hidden="true"
+        >
+          <Bearing3D size={380} />
+          <p className="-mt-2 text-center text-[10px] uppercase tracking-[0.2em] text-muted">
+            one defect per revolution — that is the whole problem
+          </p>
+        </motion.div>
+      </section>
 
       <div className="mb-12 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {loading ? (
@@ -169,12 +228,19 @@ export default function Overview() {
               "Benchmark 6 algorithms",
               "Cluster without labels",
             ].map((step, i) => (
-              <li key={step} className="flex gap-3">
+              <motion.li
+                key={step}
+                className="flex gap-3"
+                initial={{ opacity: 0, x: -12 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, ease: EASE, delay: i * 0.08 }}
+              >
                 <span className="font-[family-name:var(--font-mono)] text-xs text-accent">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <span className="text-muted">{step}</span>
-              </li>
+              </motion.li>
             ))}
           </ol>
         </Panel>
@@ -190,7 +256,7 @@ export default function Overview() {
               >
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium text-ink">{r.title}</h3>
-                  <span className="text-muted transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:text-accent">
+                  <span className="text-muted transition-transform duration-200 ease-out group-hover:translate-x-1 group-hover:text-accent">
                     →
                   </span>
                 </div>

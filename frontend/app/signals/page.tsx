@@ -82,9 +82,18 @@ function LinePlot({
       .attr("stroke-width", 1);
 
     if (animate) {
-      // Fade-in only. A draw-on effect over 2048 points looks like lag, and
-      // waveforms are dense enough that opacity reads better than motion.
-      path.attr("opacity", 0).transition().duration(320).ease(d3.easeCubicOut).attr("opacity", 1);
+      // Oscilloscope draw-on: the trace sweeps in left-to-right via a dash
+      // animation, the way a scope paints a capture.
+      const node = path.node() as SVGPathElement;
+      const len = node.getTotalLength();
+      path
+        .attr("stroke-dasharray", `${len} ${len}`)
+        .attr("stroke-dashoffset", len)
+        .transition()
+        .duration(700)
+        .ease(d3.easeCubicOut)
+        .attr("stroke-dashoffset", 0)
+        .on("end", () => path.attr("stroke-dasharray", null));
     }
   }, [xs, ys, height, xLabel, yLabel, color, animate]);
 

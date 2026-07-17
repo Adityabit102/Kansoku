@@ -22,7 +22,8 @@ function EtaBar({ value, passes }: { value: number; passes: boolean }) {
       <div className="h-1 w-20 overflow-hidden rounded-full bg-surface-2">
         <motion.div
           initial={{ scaleX: 0 }}
-          animate={{ scaleX: value }}
+          whileInView={{ scaleX: value }}
+          viewport={{ once: true, margin: "-30px" }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           style={{
             transformOrigin: "left",

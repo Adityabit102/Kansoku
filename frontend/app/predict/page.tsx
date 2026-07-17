@@ -38,9 +38,9 @@ function Result({ result }: { result: PredictionResponse }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+      initial={{ opacity: 0, y: 24, rotateX: -14, transformPerspective: 1000 }}
+      animate={{ opacity: 1, y: 0, rotateX: 0 }}
+      transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
       className="grid gap-3 lg:grid-cols-2"
     >
       <Panel index={0}>
@@ -161,12 +161,25 @@ export default function Predict() {
             submit(e.dataTransfer.files[0]);
           }}
           disabled={mutation.isPending}
-          className={`flex w-full flex-col items-center justify-center rounded-lg border border-dashed px-6 py-14 transition-colors duration-200 ${
+          className={`relative flex w-full flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed px-6 py-14 transition-colors duration-200 ${
             dragging
               ? "border-accent/70 bg-accent/10"
               : "border-line bg-surface hover:border-accent/50"
           } ${mutation.isPending ? "cursor-wait opacity-60" : "cursor-pointer"}`}
         >
+          {mutation.isPending && (
+            <motion.span
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 h-10"
+              style={{
+                background:
+                  "linear-gradient(180deg, transparent, rgb(165 42 42 / 0.14), rgb(165 42 42 / 0.4), transparent)",
+              }}
+              initial={{ top: "-12%" }}
+              animate={{ top: "104%" }}
+              transition={{ duration: 1.1, repeat: Infinity, ease: "linear" }}
+            />
+          )}
           <span className="text-2xl text-accent">{mutation.isPending ? "…" : "⌾"}</span>
           <span className="mt-3 text-sm text-ink">
             {mutation.isPending

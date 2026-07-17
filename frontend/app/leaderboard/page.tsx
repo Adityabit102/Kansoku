@@ -43,8 +43,11 @@ function ConfusionMatrix({ row }: { row: LeaderboardRow }) {
                 // marks correct — errors are what the inspector reads first.
                 const alpha = max ? v / max : 0;
                 return (
-                  <td
+                  <motion.td
                     key={j}
+                    initial={{ opacity: 0, scale: 0.6 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1], delay: (i * r.length + j) * 0.035 }}
                     title={`${v} ${row.class_order[i]} predicted as ${row.class_order[j]}`}
                     className="tabular h-11 w-16 rounded text-center"
                     style={{
@@ -57,7 +60,7 @@ function ConfusionMatrix({ row }: { row: LeaderboardRow }) {
                     }}
                   >
                     {v}
-                  </td>
+                  </motion.td>
                 );
               })}
             </tr>
