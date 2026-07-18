@@ -1,0 +1,63 @@
+/* Approved landing sequence — styles ported verbatim from the signed-off
+   mockup, ml- prefixed, with the brand font variables in place of the mock's
+   system stand-ins. */
+
+.ml-stage { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; }
+.ml-acts { position: relative; z-index: 1; pointer-events: none; }
+.ml-acts section { height: 150vh; }
+.ml-pin { position: fixed; inset: 0; display: none; z-index: 10; pointer-events: none; }
+.ml-pin.on { display: block; }
+.ml-pin a { pointer-events: auto; }
+
+.ml-mono { font-family: var(--font-mono), ui-monospace, monospace; }
+.ml-eyebrow { font-size: 12px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--color-accent); margin-bottom: 16px; }
+.ml-eyebrow-tan { color: var(--color-tan); }
+.ml-h1 { font-size: clamp(42px, 5vw, 78px); line-height: 0.99; letter-spacing: -0.02em; color: var(--color-cream); text-wrap: balance; font-weight: 600; }
+.ml-acc { color: #ffd9ae; }
+.ml-h2 { font-size: clamp(28px, 2.7vw, 40px); line-height: 1.05; letter-spacing: -0.015em; text-wrap: balance; font-weight: 600; color: var(--color-ink); }
+.ml-sub { margin-top: 14px; color: var(--color-muted); font-size: 15px; line-height: 1.6; max-width: 44ch; }
+
+.ml-hero-copy { position: absolute; left: 6vw; top: 50%; transform: translateY(-50%); max-width: 560px; }
+.ml-hero-sub { margin-top: 22px; font-size: 16.5px; line-height: 1.6; color: #cfc4b2; max-width: 44ch; }
+.ml-hero-cta { margin-top: 32px; display: flex; gap: 12px; }
+.ml-btn { font-size: 14px; padding: 13px 24px; border-radius: 8px; cursor: pointer; display: inline-block; text-decoration: none; transition: opacity 0.2s; }
+.ml-btn:hover { opacity: 0.88; }
+.ml-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.ml-btn-sand { background: #ffd9ae; color: #221e1b; font-weight: 600; border: 1px solid #ffd9ae; }
+.ml-btn-dark-ghost { background: transparent; border: 1px solid #55493f; color: var(--color-cream); }
+.ml-btn-ink { background: var(--color-ink); border: 1px solid var(--color-ink); color: var(--color-cream); }
+.ml-btn-ghost { background: transparent; border: 1px solid var(--color-ink); color: var(--color-ink); }
+.ml-cue { position: absolute; bottom: 5vh; left: 50%; transform: translateX(-50%); color: #a99c88; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; }
+
+.ml-s2-head { position: fixed; left: 6vw; top: 9vh; max-width: 380px; opacity: 0; }
+.ml-s2-head .ml-sub { font-size: 14px; max-width: 34ch; }
+.ml-callout { position: fixed; width: min(230px, 20vw); font-size: 12.5px; line-height: 1.45; color: var(--color-muted); opacity: 0; }
+.ml-callout b { display: block; font-size: 14px; color: var(--color-ink); margin: 2px 0; font-weight: 600; }
+.ml-brick b { color: var(--color-accent) !important; }
+.ml-callout .ml-mono { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #b08d54; }
+.ml-c0 { left: 6vw; top: 44vh; } .ml-c1 { left: 6vw; top: 62vh; } .ml-c2 { left: 6vw; top: 80vh; }
+.ml-c3 { right: 5vw; top: 30vh; } .ml-c4 { right: 5vw; top: 52vh; } .ml-c5 { right: 5vw; top: 74vh; }
+
+.ml-s3-head { position: fixed; left: 6vw; top: 50%; transform: translateY(-50%); max-width: 380px; opacity: 0; }
+.ml-stats-card {
+  position: fixed; right: 6vw; top: 50%; transform: translateY(-50%);
+  width: 372px; background: #221e1b; border-radius: 14px; padding: 22px 24px;
+  color: var(--color-cream); opacity: 0; box-shadow: 0 30px 60px -30px rgba(43, 39, 36, 0.5);
+}
+.ml-row { display: flex; justify-content: space-between; align-items: baseline; }
+.ml-stats-card h3 { font-size: 15px; font-weight: 600; }
+.ml-big { font-size: 14px; color: #ffd9ae; }
+.ml-segbar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin: 14px 0 16px; }
+.ml-segbar i { display: block; height: 100%; }
+.ml-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 7px 14px; font-size: 12px; color: #cfc4b2; }
+.ml-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; }
+
+.ml-s4-wrap { position: fixed; left: 50%; top: 16vh; transform: translateX(-50%); text-align: center; opacity: 0; width: min(680px, 90vw); }
+.ml-ctas { margin-top: 20px; display: flex; gap: 12px; justify-content: center; }
+
+@media (max-width: 980px) {
+  .ml-callout, .ml-stats-card { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ml-cue { display: none; }
+}
