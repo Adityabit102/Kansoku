@@ -72,7 +72,7 @@ function HeroWaveform() {
     points.push(`${x.toFixed(2)},${(40 + y).toFixed(2)}`);
   }
   return (
-    <svg viewBox="0 0 100 80" preserveAspectRatio="none" className="mt-8 h-12 w-full" aria-hidden="true">
+    <svg viewBox="0 0 100 80" preserveAspectRatio="none" className="mt-10 h-24 w-full" aria-hidden="true">
       <defs>
         <linearGradient id="wave" x1="0" x2="1" y1="0" y2="0">
           <stop offset="0%" stopColor="var(--color-sage)" />
@@ -97,7 +97,7 @@ function HeroWaveform() {
 function StaggeredTitle() {
   const words = ["Bearing", "faults,", "diagnosed", "and"];
   return (
-    <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight text-ink md:text-[3.2rem]">
+    <h1 className="text-5xl font-semibold leading-[1.05] tracking-tight text-ink md:text-[4.3rem] xl:text-[4.8rem]">
       {words.map((w, i) => (
         <span key={w} className="inline-block overflow-hidden pb-1 align-bottom">
           <motion.span
@@ -247,7 +247,7 @@ export function HeroTeardown() {
 
         {/* Hero copy over the left; dissolves as the teardown begins. */}
         <div
-          className="absolute inset-x-6 top-[14%] z-10 md:inset-x-10 lg:top-[44%] lg:max-w-xl lg:-translate-y-1/2"
+          className="absolute inset-x-6 top-[12%] z-10 md:inset-x-10 lg:top-1/2 lg:max-w-3xl lg:-translate-y-1/2"
           style={{ visibility: inSequence ? "hidden" : "visible" }}
           aria-hidden={inSequence}
         >
@@ -256,7 +256,7 @@ export function HeroTeardown() {
               initial={{ opacity: 0, x: -16 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, ease: EASE }}
-              className="mb-4 text-[11px] uppercase tracking-[0.24em] text-accent"
+              className="mb-5 text-[13px] uppercase tracking-[0.28em] text-accent"
             >
               観測 · Observation
             </motion.p>
@@ -265,7 +265,7 @@ export function HeroTeardown() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, ease: EASE, delay: 0.5 }}
-              className="mt-5 max-w-xl text-[15px] leading-relaxed text-muted"
+              className="mt-7 max-w-2xl text-lg leading-relaxed text-muted md:text-xl"
             >
               Kansoku classifies bearing faults from raw vibration signals — and defends
               every step: an effect-size gate before any model trains, six algorithms on
