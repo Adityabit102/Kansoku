@@ -98,8 +98,9 @@ export default function Significance() {
               The sample-size trap
             </PanelTitle>
             <p className="text-sm leading-relaxed text-muted">
-              All {data?.length ?? 36} features are &ldquo;statistically significant&rdquo;.
-              That is not a finding — it is an artifact of {(5886).toLocaleString()} segments.
+              All {`${data?.length ?? 36} features`} are &ldquo;statistically
+              significant&rdquo;. That is not a finding — it is an artifact of{" "}
+              {`${(5886).toLocaleString()} segments`}.
               Given enough samples, any difference, however meaningless, crosses p &lt; 0.05.
               Ranking or selecting on p-value would therefore justify nothing at all.
             </p>
