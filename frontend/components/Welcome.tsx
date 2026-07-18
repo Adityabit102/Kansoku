@@ -120,30 +120,31 @@ function CubeGrid() {
 function Typewriter({ text, onDone }: { text: string; onDone: () => void }) {
   const [n, setN] = useState(0);
   const doneRef = useRef(false);
+  const intervalRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      const raf = requestAnimationFrame(() => {
-        setN(text.length);
-        onDone();
-      });
+      const raf = requestAnimationFrame(() => setN(text.length));
       return () => cancelAnimationFrame(raf);
     }
-    const id = window.setInterval(() => {
-      setN((v) => {
-        if (v >= text.length) {
-          window.clearInterval(id);
-          if (!doneRef.current) {
-            doneRef.current = true;
-            onDone();
-          }
-          return v;
-        }
-        return v + 1;
-      });
+    intervalRef.current = window.setInterval(() => {
+      setN((v) => Math.min(v + 1, text.length));
     }, 38);
-    return () => window.clearInterval(id);
-  }, [text, onDone]);
+    return () => {
+      if (intervalRef.current !== null) window.clearInterval(intervalRef.current);
+    };
+  }, [text]);
+
+  // Completion is observed from committed state, never signalled from inside
+  // the setN updater — calling the parent's setState mid-render is a React
+  // error ("cannot update Welcome while rendering Typewriter").
+  useEffect(() => {
+    if (n < text.length || doneRef.current) return;
+    doneRef.current = true;
+    if (intervalRef.current !== null) window.clearInterval(intervalRef.current);
+    const raf = requestAnimationFrame(() => onDone());
+    return () => cancelAnimationFrame(raf);
+  }, [n, text.length, onDone]);
 
   return (
     <p className="mx-auto max-w-2xl text-balance text-xl font-medium leading-relaxed text-ink md:text-2xl">
