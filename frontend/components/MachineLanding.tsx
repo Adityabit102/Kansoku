@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { api, fmtPct } from "@/lib/api";
 import "./machine-landing.css";
 
 /* The approved landing engine, ported verbatim from the signed-off mockup:
@@ -39,10 +41,33 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const range = (p: number, a: number, b: number) => clamp((p - a) / (b - a), 0, 1);
 
+/** Shorten leaderboard names the way the leaderboard page does. */
+const shortName = (n: string) =>
+  n.replace("Neural Network (MLP)", "MLP").replace("k-Nearest Neighbors", "k-NN")
+   .replace("Logistic Regression", "LogReg").replace("Naive Bayes", "NB");
+
 export function MachineLanding() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const actsRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+
+  // Act 3's benchmark card reads the same artifacts as the rest of the site,
+  // so a retrain updates it too. Values below fall back to the shipped
+  // numbers while loading, keeping first paint identical.
+  const leaderboard = useQuery({ queryKey: ["leaderboard"], queryFn: api.leaderboard });
+  const manifest = useQuery({ queryKey: ["manifest"], queryFn: api.manifest });
+  const significance = useQuery({ queryKey: ["significance"], queryFn: api.significance });
+  const top4 = leaderboard.data?.slice(0, 4);
+  const gated = significance.data
+    ? `${significance.data.filter((r) => r.passes_gate).length}/${significance.data.length} gated`
+    : "34/36 gated";
+  const segs = manifest.data
+    ? `${manifest.data.n_segments.toLocaleString()} segments`
+    : "5,886 segments";
+  const cardModels = top4
+    ? top4.map((r) => `${shortName(r.model_name)} ${fmtPct(r.cv_mean, 1)}`)
+    : ["Random Forest 99.9%", "k-NN 98.8%", "LogReg 98.6%", "MLP 96.9%"];
+  const cardBig = top4 ? `${fmtPct(top4[0].cv_mean, 2)} CV` : "99.92% CV";
 
   useEffect(() => {
     const canvas = canvasRef.current, actsEl = actsRef.current, root = rootRef.current;
@@ -448,7 +473,7 @@ export function MachineLanding() {
           </p>
         </div>
         <div className="ml-stats-card">
-          <div className="ml-row"><h3>Benchmark</h3><span className="ml-big ml-mono">99.92% CV</span></div>
+          <div className="ml-row"><h3>Benchmark</h3><span className="ml-big ml-mono">{cardBig}</span></div>
           <div className="ml-segbar">
             <i style={{ width: "34%", background: "var(--color-accent)" }} />
             <i style={{ width: "22%", background: "var(--color-tan)" }} />
@@ -457,12 +482,14 @@ export function MachineLanding() {
             <i style={{ width: "12%", background: "#5c6549" }} />
           </div>
           <div className="ml-legend">
-            <span><i style={{ background: "var(--color-accent)" }} />Random Forest 99.9%</span>
-            <span><i style={{ background: "var(--color-tan)" }} />k-NN 98.8%</span>
-            <span><i style={{ background: "var(--color-sage)" }} />LogReg 98.6%</span>
-            <span><i style={{ background: "#c1a26f" }} />MLP 96.9%</span>
-            <span><i style={{ background: "#5c6549" }} />5,886 segments</span>
-            <span><i style={{ background: "#7e1f1f" }} />34/36 gated</span>
+            {cardModels.map((label, i) => (
+              <span key={label}>
+                <i style={{ background: ["var(--color-accent)", "var(--color-tan)", "var(--color-sage)", "#c1a26f"][i] }} />
+                {label}
+              </span>
+            ))}
+            <span><i style={{ background: "#5c6549" }} />{segs}</span>
+            <span><i style={{ background: "#7e1f1f" }} />{gated}</span>
           </div>
         </div>
       </div>
