@@ -293,6 +293,37 @@ export function HeroTeardown() {
           </motion.p>
         </motion.div>
 
+        {/* Completed acts drift to the left and wait there, blurred — parts
+            already inspected, set aside on the bench. */}
+        <motion.div
+          style={{ opacity: railOpacity }}
+          className="absolute left-[4vw] top-1/2 hidden w-72 -translate-y-1/2 flex-col gap-12 lg:flex"
+          aria-hidden="true"
+        >
+          <AnimatePresence>
+            {ACTS.filter((_, i) => act >= 0 && i < act).map((a, i) => (
+              <motion.div
+                key={a.title}
+                initial={{ opacity: 0, x: 180, filter: "blur(0px)" }}
+                animate={{ opacity: 0.4, x: 0, filter: "blur(2.5px)" }}
+                exit={{ opacity: 0, x: 180, filter: "blur(0px)" }}
+                transition={{ duration: 0.5, ease: EASE }}
+              >
+                <p className="font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.3em] text-muted">
+                  {String(i + 1).padStart(2, "0")} / {ACTS.length} · inspected
+                </p>
+                <p
+                  className={`mt-2 text-3xl font-semibold tracking-tight ${
+                    a.accent ? "text-accent" : "text-ink"
+                  }`}
+                >
+                  {a.title}
+                </p>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
+
         {/* Act rail: display-scale labels, one act at a time. */}
         <motion.div
           style={{ opacity: railOpacity }}
