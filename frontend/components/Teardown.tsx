@@ -276,7 +276,7 @@ export function HeroTeardown() {
         {/* Scroll cue. */}
         <motion.div
           style={{ opacity: cueOpacity, visibility: inSequence ? "hidden" : "visible" }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center"
+          className="absolute left-1/2 top-24 -translate-x-1/2 text-center"
         >
           <p className="text-[11px] uppercase tracking-[0.24em] text-accent">
             Anatomy of a failure
