@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { api, fmtPct } from "@/lib/api";
 import { HeroTeardown } from "@/components/Teardown";
+import { Welcome } from "@/components/Welcome";
 import { DotGrid } from "@/components/DotGrid";
 import { LiveTelemetry } from "@/components/LiveTelemetry";
 import {
@@ -41,6 +42,8 @@ export default function Overview() {
 
   return (
     <>
+      <Welcome />
+
       <HeroTeardown />
 
       <DotGrid />
