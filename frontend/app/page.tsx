@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { api, fmtPct } from "@/lib/api";
@@ -28,6 +29,7 @@ const ROUTES = [
 ];
 
 export default function Overview() {
+  const [entered, setEntered] = useState(false);
   const manifest = useQuery({ queryKey: ["manifest"], queryFn: api.manifest });
   const leaderboard = useQuery({ queryKey: ["leaderboard"], queryFn: api.leaderboard });
   const clusters = useQuery({ queryKey: ["clusters"], queryFn: api.clusters });
@@ -42,9 +44,11 @@ export default function Overview() {
 
   return (
     <>
-      <Welcome />
+      <Welcome onDone={() => setEntered(true)} />
 
-      <HeroTeardown />
+      {/* Remounts once the gate opens so the hero entrance plays in view,
+          not hidden behind the overlay. */}
+      <HeroTeardown key={String(entered)} />
 
       <DotGrid />
 

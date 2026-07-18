@@ -208,7 +208,10 @@ export function HeroTeardown() {
   const bearingX = useSpring(bearingXRaw, { stiffness: 90, damping: 24 });
   const bearingScale = useSpring(bearingScaleRaw, { stiffness: 90, damping: 24 });
 
-  const explode = useTransform(scrollYProgress, [0.18, 0.28, 0.68, 0.8], [0, 1, 1, 0]);
+  const explodeRaw = useTransform(scrollYProgress, [0.18, 0.28, 0.68, 0.8], [0, 1, 1, 0]);
+  // Springing the explosion keeps wheel-step scrolling from snapping the
+  // races between positions — the machine glides apart.
+  const explode = useSpring(explodeRaw, { stiffness: 70, damping: 20 });
   const speed = useTransform(scrollYProgress, [0.8, 0.96], [1, 2.6]);
   const amp = useTransform(scrollYProgress, [0.82, 0.96], [0, 1]);
 

@@ -151,6 +151,32 @@ def test_predict_demo_404_on_unknown_recording():
     assert client.get("/predict/demo/99999").status_code == 404
 
 
+def test_predict_demo_with_named_model():
+    """Any leaderboard model can serve; NB is the weakest but 105 is easy."""
+    r = client.get("/predict/demo/105?model=Naive Bayes")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["model_name"] == "Naive Bayes"
+    assert body["predicted_class"] == "inner_race"
+
+
+def test_predict_rejects_unknown_model():
+    r = client.get("/predict/demo/105?model=SVM")
+    assert r.status_code == 400
+    assert "unknown model" in r.json()["detail"]
+
+
+def test_signal_bundle_fallback_matches_contract():
+    """Every /segments entry must be servable from the committed bundle alone."""
+    from kansoku.api import artifacts as art
+
+    bundle = art.signal_bundle()
+    assert bundle is not None, "run python -m kansoku.export_bundle"
+    for row in client.get("/segments").json():
+        file_id, idx = row["segment_id"].split("#")
+        assert f"win_{file_id}_{idx}" in bundle, f"bundle missing {row['segment_id']}"
+
+
 def test_segments_cover_every_recording_condition():
     """One representative per (label, severity, load) — 40 distinct recordings."""
     rows = client.get("/segments").json()

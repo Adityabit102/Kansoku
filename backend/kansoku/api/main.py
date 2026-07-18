@@ -95,15 +95,26 @@ def get_signal(file_id: str, idx: int) -> dict:
     from kansoku.config import DATA_RAW
 
     rec = next((r for r in CWRU_FILES if str(r.file_id) == file_id), None)
-    path = DATA_RAW / f"{file_id}.mat"
-    if rec is None or not path.exists():
+    if rec is None:
         raise HTTPException(404, f"no recording {file_id}")
 
-    windows = segment(load_signal(path))
-    if not 0 <= idx < len(windows):
-        raise HTTPException(404, f"segment {idx} out of range for {file_id}")
-
-    w = windows[idx]
+    path = DATA_RAW / f"{file_id}.mat"
+    if path.exists():
+        windows = segment(load_signal(path))
+        if not 0 <= idx < len(windows):
+            raise HTTPException(404, f"segment {idx} out of range for {file_id}")
+        w = windows[idx]
+    else:
+        # Raw data absent (fresh clone): serve from the committed bundle,
+        # which carries window 0 of every recording.
+        bundle = art.signal_bundle()
+        key = f"win_{file_id}_{idx}"
+        if bundle is None or key not in bundle:
+            raise HTTPException(
+                404, f"segment {file_id}#{idx} not available without raw data; "
+                "run python -m kansoku.signal.pipeline to download it"
+            )
+        w = bundle[key].astype(np.float64)
     spectrum = np.abs(np.fft.rfft(w * np.hanning(w.size)))
     freqs = np.fft.rfftfreq(w.size, d=1.0 / SAMPLING_RATE_HZ)
     return {
@@ -140,7 +151,17 @@ def _driving_features(feats: dict[str, float], selected: list[str]) -> list[Driv
     ]
 
 
-def _classify(sig: np.ndarray, t0: float) -> PredictionResponse:
+def _resolve_model(model: str | None):
+    """Pick the serving model: the leaderboard winner unless one is named."""
+    if model is None:
+        return art.best_model()
+    valid = {row["model_name"] for row in art.leaderboard()}
+    if model not in valid:
+        raise HTTPException(400, f"unknown model {model!r}; one of {sorted(valid)}")
+    return model, art.model_by_name(model)
+
+
+def _classify(sig: np.ndarray, t0: float, model: str | None = None) -> PredictionResponse:
     """Segment, featurize, and majority-vote a raw signal.
 
     Shared by file upload and the demo endpoint so both paths stay identical.
@@ -153,7 +174,7 @@ def _classify(sig: np.ndarray, t0: float) -> PredictionResponse:
     manifest = art.manifest()
     selected = manifest["features"]
     classes = manifest["classes"]
-    model_name, model = art.best_model()
+    model_name, mdl = _resolve_model(model)
 
     windows = segment(sig)
     # Cap the vote at 16 windows, evenly spaced across the capture. A full CWRU
@@ -166,9 +187,9 @@ def _classify(sig: np.ndarray, t0: float) -> PredictionResponse:
     Xs = art.scaler().transform(X)
 
     if model_name == "Neural Network (MLP)":
-        probs = model.predict(Xs, verbose=0)
-    elif hasattr(model, "predict_proba"):
-        probs = model.predict_proba(Xs)
+        probs = mdl.predict(Xs, verbose=0)
+    elif hasattr(mdl, "predict_proba"):
+        probs = mdl.predict_proba(Xs)
     else:
         raise HTTPException(500, f"{model_name} cannot produce probabilities")
 
@@ -187,7 +208,7 @@ def _classify(sig: np.ndarray, t0: float) -> PredictionResponse:
 
 
 @app.post("/predict", response_model=PredictionResponse)
-async def predict(file: UploadFile = File(...)) -> PredictionResponse:
+async def predict(file: UploadFile = File(...), model: str | None = None) -> PredictionResponse:
     """Classify an uploaded vibration signal (.mat or .csv).
 
     Signals longer than one window are segmented and majority-voted, which is
@@ -211,11 +232,11 @@ async def predict(file: UploadFile = File(...)) -> PredictionResponse:
     except Exception as exc:
         raise HTTPException(400, f"could not parse signal: {exc}") from exc
 
-    return _classify(sig, t0)
+    return _classify(sig, t0, model)
 
 
 @app.get("/predict/demo/{file_id}", response_model=PredictionResponse)
-def predict_demo(file_id: str) -> PredictionResponse:
+def predict_demo(file_id: str, model: str | None = None) -> PredictionResponse:
     """Diagnose one of the bundled CWRU recordings by id.
 
     Lets the UI offer one-click demo diagnoses without requiring the visitor to
@@ -226,7 +247,16 @@ def predict_demo(file_id: str) -> PredictionResponse:
 
     t0 = time.perf_counter()
     rec = next((r for r in CWRU_FILES if str(r.file_id) == file_id), None)
-    path = DATA_RAW / f"{file_id}.mat"
-    if rec is None or not path.exists():
+    if rec is None:
         raise HTTPException(404, f"no recording {file_id}")
-    return _classify(load_signal(path), t0)
+
+    path = DATA_RAW / f"{file_id}.mat"
+    if path.exists():
+        sig = load_signal(path)
+    else:
+        bundle = art.signal_bundle()
+        key = f"demo_{file_id}"
+        if bundle is None or key not in bundle:
+            raise HTTPException(404, f"no recording {file_id}")
+        sig = bundle[key].astype(np.float64)
+    return _classify(sig, t0, model)

@@ -59,16 +59,33 @@ def scaler():
     return joblib.load(_require(ARTIFACTS / "scaler.joblib"))
 
 
-@functools.lru_cache(maxsize=1)
-def best_model():
-    """The leaderboard's top model, used to serve /predict."""
-    name = manifest()["best_model"]
+@functools.lru_cache(maxsize=8)
+def model_by_name(name: str):
+    """Load any benchmarked model by its leaderboard name."""
     if name == "Neural Network (MLP)":
         from tensorflow import keras
 
-        return name, keras.models.load_model(_require(MODELS_DIR / "mlp.keras"))
-    slug = name.lower().replace(" ", "_")
-    return name, joblib.load(_require(MODELS_DIR / f"{slug}.joblib"))
+        return keras.models.load_model(_require(MODELS_DIR / "mlp.keras"))
+    slug = name.lower().replace(" ", "_").replace("-", "-")
+    return joblib.load(_require(MODELS_DIR / f"{slug}.joblib"))
+
+
+def best_model():
+    """The leaderboard's top model, the default for /predict."""
+    name = manifest()["best_model"]
+    return name, model_by_name(name)
+
+
+@functools.lru_cache(maxsize=1)
+def signal_bundle():
+    """Small committed fallback for raw signals (see kansoku.export_bundle).
+
+    Returns None when absent; callers prefer the raw download when present.
+    """
+    path = ARTIFACTS / "signal_bundle.npz"
+    if not path.exists():
+        return None
+    return np.load(path)
 
 
 @functools.lru_cache(maxsize=1)

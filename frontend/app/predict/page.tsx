@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { api, CLASS_LABEL, fmtPct, type PredictionResponse } from "@/lib/api";
 import { PageHeader, Panel, PanelTitle } from "@/components/ui";
@@ -107,10 +107,14 @@ export default function Predict() {
   const [dragging, setDragging] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const [pendingDemo, setPendingDemo] = useState<string | null>(null);
+  const [model, setModel] = useState<string>("");
+  const leaderboard = useQuery({ queryKey: ["leaderboard"], queryFn: api.leaderboard });
 
   const mutation = useMutation({
     mutationFn: (input: File | string) =>
-      typeof input === "string" ? api.predictDemo(input) : api.predict(input),
+      typeof input === "string"
+        ? api.predictDemo(input, model || undefined)
+        : api.predict(input, model || undefined),
     onSettled: () => setPendingDemo(null),
   });
 
@@ -198,6 +202,29 @@ export default function Predict() {
             e.target.value = "";
           }}
         />
+
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <label className="flex items-center gap-2 text-xs text-muted">
+            Serve with
+            <select
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              disabled={mutation.isPending}
+              className="rounded-md border border-line bg-surface px-2 py-1.5 text-xs text-ink outline-none transition-colors duration-200 hover:border-accent/50 focus:border-accent"
+            >
+              <option value="">
+                {leaderboard.data
+                  ? `${leaderboard.data[0].model_name} (best)`
+                  : "Best model"}
+              </option>
+              {leaderboard.data?.slice(1).map((r) => (
+                <option key={r.model_name} value={r.model_name}>
+                  {r.model_name} · {(r.cv_mean * 100).toFixed(1)}% CV
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <span className="text-xs text-muted">No file on hand? Diagnose a bundled recording:</span>

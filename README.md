@@ -88,19 +88,33 @@ K-means discovery              6-model benchmark
 
 ## Run it
 
+Everything the app needs to serve is committed — trained models, the scaler, gated features, cluster artifacts, and a ~700KB signal bundle — so it works from a fresh clone with no training step:
+
 ```bash
-# 1. Train (downloads CWRU data ~200MB, runs full pipeline: ~10 min)
+docker compose up --build            # web on :3000, API on :8000
+```
+
+Or without Docker:
+
+```bash
+cd backend  && pip install -e ".[dev]" && uvicorn kansoku.api.main:app --port 8000
+cd frontend && npm ci && npm run dev
+```
+
+To retrain from scratch (downloads the raw CWRU data, ~200MB; ~10 min):
+
+```bash
 cd backend
 python -m kansoku.signal.pipeline    # download + segment + extract features
 python -m kansoku.stats.run          # significance gate
 python -m kansoku.models.train       # 6-model benchmark
 python -m kansoku.models.cluster     # k-means sweep
-
-# 2. Serve
-docker compose up --build            # web on :3000, API on :8000
+python -m kansoku.export_bundle      # refresh the committed signal bundle
 ```
 
-Or without Docker: `uvicorn kansoku.api.main:app --port 8000` and `npm run dev` in `frontend/`.
+## Interface
+
+A session-gated welcome (anime.js × three.js cube lattice, typewriter tagline, engineering graffiti) opens onto a scroll-scrubbed **bearing teardown**: a 3D deep-groove bearing idles beside the hero, flows to center, explodes into a labeled engineering view component by component, reassembles, and spins up while its defect writes an impact train onto a live trace. Beyond it: live simulated telemetry with real windowed RMS/kurtosis/peak, count-up stats, an anime.js dot-grid ripple, and five working views — signals with **characteristic fault-frequency overlays** (BPFI/BPFO/BSF per shaft speed), the significance table, a drag-to-rotate 3D cluster explorer, the leaderboard with confusion drill-downs, and a diagnosis page where **any of the six benchmarked models can serve the prediction**.
 
 ## Design
 

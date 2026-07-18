@@ -119,18 +119,20 @@ export const api = {
     const [fileId, idx] = segmentId.split("#");
     return get<SignalResponse>(`/signal/${fileId}/${idx}`);
   },
-  predictDemo: async (fileId: string): Promise<PredictionResponse> => {
-    const res = await fetch(`${API}/predict/demo/${fileId}`);
+  predictDemo: async (fileId: string, model?: string): Promise<PredictionResponse> => {
+    const q = model ? `?model=${encodeURIComponent(model)}` : "";
+    const res = await fetch(`${API}/predict/demo/${fileId}${q}`);
     if (!res.ok) {
       const { detail } = await res.json().catch(() => ({ detail: res.statusText }));
       throw new Error(detail ?? "prediction failed");
     }
     return res.json();
   },
-  predict: async (file: File): Promise<PredictionResponse> => {
+  predict: async (file: File, model?: string): Promise<PredictionResponse> => {
     const body = new FormData();
     body.append("file", file);
-    const res = await fetch(`${API}/predict`, { method: "POST", body });
+    const q = model ? `?model=${encodeURIComponent(model)}` : "";
+    const res = await fetch(`${API}/predict${q}`, { method: "POST", body });
     if (!res.ok) {
       const { detail } = await res.json().catch(() => ({ detail: res.statusText }));
       throw new Error(detail ?? "prediction failed");

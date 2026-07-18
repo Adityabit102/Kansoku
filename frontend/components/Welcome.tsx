@@ -161,7 +161,7 @@ function Typewriter({ text, onDone }: { text: string; onDone: () => void }) {
 /** Full-screen welcome gate shown once per session, before the landing page.
  *  Click, Enter, or Escape skips; otherwise it advances shortly after the
  *  typewriter finishes. */
-export function Welcome() {
+export function Welcome({ onDone }: { onDone?: () => void }) {
   const [show, setShow] = useState(false);
   const [typed, setTyped] = useState(false);
 
@@ -170,8 +170,10 @@ export function Welcome() {
     // lint rule rightly dislikes synchronous setState inside effects.
     const raf = requestAnimationFrame(() => {
       if (!sessionStorage.getItem("kansoku-welcomed")) setShow(true);
+      else onDone?.();
     });
     return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -185,7 +187,8 @@ export function Welcome() {
   const dismiss = useCallback(() => {
     sessionStorage.setItem("kansoku-welcomed", "1");
     setShow(false);
-  }, []);
+    onDone?.();
+  }, [onDone]);
 
   useEffect(() => {
     if (!show) return;

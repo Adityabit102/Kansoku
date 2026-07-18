@@ -6,6 +6,12 @@ import * as d3 from "d3";
 import { api, CLASS_LABEL, type SegmentRef } from "@/lib/api";
 import { ErrorNote, PageHeader, Panel, PanelTitle, Skeleton } from "@/components/ui";
 
+interface Marker {
+  x: number;
+  label: string;
+  color: string;
+}
+
 function LinePlot({
   xs,
   ys,
@@ -14,6 +20,7 @@ function LinePlot({
   yLabel,
   color = "var(--color-ink)",
   animate = true,
+  markers = [],
 }: {
   xs: number[];
   ys: number[];
@@ -22,6 +29,7 @@ function LinePlot({
   yLabel: string;
   color?: string;
   animate?: boolean;
+  markers?: Marker[];
 }) {
   const ref = useRef<SVGSVGElement>(null);
 
@@ -68,6 +76,24 @@ function LinePlot({
       .attr("text-anchor", "middle").attr("fill", axisColor).attr("font-size", 10)
       .text(yLabel);
 
+    // Characteristic fault frequencies as dashed verticals behind the trace.
+    for (const mk of markers) {
+      if (mk.x < xs[0] || mk.x > xs[xs.length - 1]) continue;
+      svg
+        .append("line")
+        .attr("x1", x(mk.x)).attr("x2", x(mk.x))
+        .attr("y1", m.top).attr("y2", height - m.bottom)
+        .attr("stroke", mk.color)
+        .attr("stroke-dasharray", "3 4")
+        .attr("stroke-opacity", 0.55);
+      svg
+        .append("text")
+        .attr("x", x(mk.x) + 3).attr("y", m.top + 10)
+        .attr("fill", mk.color).attr("font-size", 9)
+        .attr("font-family", "var(--font-mono)")
+        .text(mk.label);
+    }
+
     const line = d3
       .line<number>()
       .x((_, i) => x(xs[i]))
@@ -95,9 +121,27 @@ function LinePlot({
         .attr("stroke-dashoffset", 0)
         .on("end", () => path.attr("stroke-dasharray", null));
     }
-  }, [xs, ys, height, xLabel, yLabel, color, animate]);
+  }, [xs, ys, height, xLabel, yLabel, color, animate, markers]);
 
   return <svg ref={ref} style={{ height }} className="w-full" role="img" aria-label={yLabel} />;
+}
+
+/** SKF 6205 drive-end bearing constants: characteristic fault frequencies as
+ *  multiples of shaft speed. Shaft rpm varies with motor load in CWRU. */
+const RPM_BY_LOAD = [1797, 1772, 1750, 1730] as const;
+const FAULT_ORDERS = [
+  { key: "BPFI", mult: 5.4152, color: "var(--c-inner_race)" },
+  { key: "BPFO", mult: 3.5848, color: "var(--c-outer_race)" },
+  { key: "BSF", mult: 2.357, color: "var(--c-ball)" },
+] as const;
+
+function faultMarkers(loadHp: number): Marker[] {
+  const fr = RPM_BY_LOAD[loadHp] / 60;
+  // Fundamental + second harmonic each — where real spall energy concentrates.
+  return FAULT_ORDERS.flatMap(({ key, mult, color }) => [
+    { x: mult * fr, label: key, color },
+    { x: 2 * mult * fr, label: `2×${key}`, color },
+  ]);
 }
 
 export default function Signals() {
@@ -105,6 +149,7 @@ export default function Signals() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const active = selectedId ?? segments.data?.[0]?.segment_id ?? null;
+  const activeSeg = segments.data?.find((s) => s.segment_id === active);
   const signal = useQuery({
     queryKey: ["signal", active],
     queryFn: () => api.signal(active!),
@@ -219,12 +264,16 @@ export default function Signals() {
                 xLabel="frequency (Hz)"
                 yLabel="|X(f)|"
                 color="var(--color-accent)"
+                markers={activeSeg ? faultMarkers(activeSeg.load_hp) : []}
               />
             )}
             <p className="mt-2 text-xs leading-relaxed text-muted">
-              Fault frequencies scale with shaft speed: inner-race defects excite ~157 Hz
-              and harmonics at 1797 rpm; outer-race, ~104 Hz. The spectral centroid of this
-              plot is the single strongest feature in the significance table (η² = 0.97).
+              Dashed lines mark the characteristic fault frequencies for this
+              recording&rsquo;s shaft speed ({activeSeg ? RPM_BY_LOAD[activeSeg.load_hp] : 1797}{" "}
+              rpm): BPFI for inner-race defects, BPFO for outer-race, BSF for ball spin —
+              plus second harmonics. A faulted bearing piles energy onto its own line; the
+              spectral centroid that shift produces is the strongest feature in the
+              significance table (η² = 0.97).
             </p>
           </Panel>
         </div>
