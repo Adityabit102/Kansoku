@@ -1,0 +1,15 @@
+# Render free tier (512MB): backend deps without TensorFlow — the MLP is
+# disabled via DISABLED_MODELS and everything else serves normally.
+numpy
+scipy
+scikit-learn
+statsmodels
+PyWavelets
+pandas
+pyarrow
+requests
+fastapi
+uvicorn[standard]
+pydantic
+joblib
+python-multipart

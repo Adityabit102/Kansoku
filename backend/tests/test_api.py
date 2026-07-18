@@ -166,6 +166,19 @@ def test_predict_rejects_unknown_model():
     assert "unknown model" in r.json()["detail"]
 
 
+def test_disabled_model_rejected_and_default_reroutes(monkeypatch):
+    """A memory-limited host can refuse a model without breaking defaults."""
+    monkeypatch.setenv("DISABLED_MODELS", "Random Forest")
+    r = client.get("/predict/demo/105?model=Random Forest")
+    assert r.status_code == 400
+    assert "not served on this deployment" in r.json()["detail"]
+    # default serving skips the disabled winner and uses the runner-up
+    body = client.get("/predict/demo/105").json()
+    assert body["model_name"] != "Random Forest"
+    assert body["predicted_class"] == "inner_race"
+    assert "Random Forest" in client.get("/manifest").json()["disabled_models"]
+
+
 def test_signal_bundle_fallback_matches_contract():
     """Every /segments entry must be servable from the committed bundle alone."""
     from kansoku.api import artifacts as art

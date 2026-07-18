@@ -124,20 +124,26 @@ Motion is two disciplined layers: 2D — ≤ 280 ms ease-out entrances, opacity 
 
 ## Deployment
 
-Backend on **Hugging Face Spaces** (free, Docker, 16GB), frontend on **Vercel**:
+Backend on **Render** (free tier, no card), frontend on **Vercel**:
 
 ```bash
-# 1. Backend: create a Docker Space at huggingface.co/new-space, then
-HF_TOKEN=hf_xxx ./deploy/deploy_hf.sh <hf-username> kansoku-api
-#    -> https://<hf-username>-kansoku-api.hf.space
+# 1. Backend: render.com -> New + -> Blueprint -> connect this repo
+#    (render.yaml configures everything: python runtime, health check,
+#     DISABLED_MODELS="Neural Network (MLP)" so TF stays off the 512MB host —
+#     the MLP keeps its leaderboard metrics, it just can't serve there)
+#    -> https://kansoku-api.onrender.com
 
 # 2. Frontend: import the GitHub repo in Vercel
 #    Root Directory: frontend
-#    Env var:        NEXT_PUBLIC_API_URL=https://<hf-username>-kansoku-api.hf.space
+#    Env var:        NEXT_PUBLIC_API_URL=https://kansoku-api.onrender.com
 
-# 3. Back on the Space (Settings -> Variables), allow the Vercel origin:
+# 3. Back on Render (Environment), allow the Vercel origin:
 #    ALLOWED_ORIGINS=https://<your-app>.vercel.app
 ```
+
+Alternative hosts: `deploy/deploy_hf.sh` pushes to a Hugging Face Space
+(Gradio SDK wrapper in app.py), and the root [Dockerfile](Dockerfile) works on
+any Docker host with the full model set including TensorFlow.
 
 The root [Dockerfile](Dockerfile) bakes in the committed artifacts and processed features, so the deployed API is fully self-sufficient — no raw-data download, no volumes. It honors `$PORT` and installs the right TensorFlow wheel per architecture.
 

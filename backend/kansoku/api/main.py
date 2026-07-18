@@ -52,7 +52,7 @@ def health() -> dict:
 
 @app.get("/manifest")
 def get_manifest() -> dict:
-    return art.manifest()
+    return {**art.manifest(), "disabled_models": sorted(_disabled_models())}
 
 
 @app.get("/significance", response_model=list[SignificanceRow])
@@ -155,13 +155,30 @@ def _driving_features(feats: dict[str, float], selected: list[str]) -> list[Driv
     ]
 
 
+def _disabled_models() -> set[str]:
+    """Models this deployment refuses to serve (e.g. TF on a 512MB host)."""
+    return {m.strip() for m in os.environ.get("DISABLED_MODELS", "").split(",") if m.strip()}
+
+
 def _resolve_model(model: str | None):
-    """Pick the serving model: the leaderboard winner unless one is named."""
+    """Pick the serving model: the best *available* one unless one is named."""
+    disabled = _disabled_models()
     if model is None:
-        return art.best_model()
+        name = art.manifest()["best_model"]
+        if name in disabled:
+            name = next(
+                (r["model_name"] for r in art.leaderboard() if r["model_name"] not in disabled),
+                name,
+            )
+        return name, art.model_by_name(name)
     valid = {row["model_name"] for row in art.leaderboard()}
     if model not in valid:
         raise HTTPException(400, f"unknown model {model!r}; one of {sorted(valid)}")
+    if model in disabled:
+        raise HTTPException(
+            400, f"{model} is not served on this deployment (memory-limited host); "
+            "its benchmark metrics are unaffected"
+        )
     return model, art.model_by_name(model)
 
 

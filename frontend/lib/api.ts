@@ -96,6 +96,8 @@ export interface Manifest {
   features: string[];
   classes: FaultClass[];
   best_model: string;
+  /** Models this deployment declines to serve (memory-limited hosts). */
+  disabled_models?: string[];
 }
 
 async function get<T>(path: string): Promise<T> {

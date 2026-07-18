@@ -109,6 +109,9 @@ export default function Predict() {
   const [pendingDemo, setPendingDemo] = useState<string | null>(null);
   const [model, setModel] = useState<string>("");
   const leaderboard = useQuery({ queryKey: ["leaderboard"], queryFn: api.leaderboard });
+  const manifest = useQuery({ queryKey: ["manifest"], queryFn: api.manifest });
+  const disabled = new Set(manifest.data?.disabled_models ?? []);
+  const defaultServe = leaderboard.data?.find((r) => !disabled.has(r.model_name));
 
   const mutation = useMutation({
     mutationFn: (input: File | string) =>
@@ -213,15 +216,20 @@ export default function Predict() {
               className="rounded-md border border-line bg-surface px-2 py-1.5 text-xs text-ink outline-none transition-colors duration-200 hover:border-accent/50 focus:border-accent"
             >
               <option value="">
-                {leaderboard.data
-                  ? `${leaderboard.data[0].model_name} (best)`
-                  : "Best model"}
+                {defaultServe ? `${defaultServe.model_name} (best)` : "Best model"}
               </option>
-              {leaderboard.data?.slice(1).map((r) => (
-                <option key={r.model_name} value={r.model_name}>
-                  {r.model_name} · {(r.cv_mean * 100).toFixed(1)}% CV
-                </option>
-              ))}
+              {leaderboard.data
+                ?.filter((r) => r.model_name !== defaultServe?.model_name)
+                .map((r) => (
+                  <option
+                    key={r.model_name}
+                    value={r.model_name}
+                    disabled={disabled.has(r.model_name)}
+                  >
+                    {r.model_name} · {(r.cv_mean * 100).toFixed(1)}% CV
+                    {disabled.has(r.model_name) ? " · unavailable here" : ""}
+                  </option>
+                ))}
             </select>
           </label>
         </div>
