@@ -158,7 +158,12 @@ function Typewriter({ text, onDone }: { text: string; onDone: () => void }) {
   );
 }
 
-/** Full-screen welcome gate shown once per session, before the landing page.
+// Module-scoped: resets on a full page load, survives client-side navigation.
+// The gate therefore greets every hard visit but never replays when the user
+// simply navigates back to Overview mid-session.
+let welcomedThisLoad = false;
+
+/** Full-screen welcome gate shown once per page load, before the landing page.
  *  Click, Enter, or Escape skips; otherwise it advances shortly after the
  *  typewriter finishes. */
 export function Welcome({ onDone }: { onDone?: () => void }) {
@@ -169,7 +174,7 @@ export function Welcome({ onDone }: { onDone?: () => void }) {
     // Deferred a frame: the gate reads sessionStorage (client-only), and the
     // lint rule rightly dislikes synchronous setState inside effects.
     const raf = requestAnimationFrame(() => {
-      if (!sessionStorage.getItem("kansoku-welcomed")) setShow(true);
+      if (!welcomedThisLoad) setShow(true);
       else onDone?.();
     });
     return () => cancelAnimationFrame(raf);
@@ -185,7 +190,7 @@ export function Welcome({ onDone }: { onDone?: () => void }) {
   }, [show]);
 
   const dismiss = useCallback(() => {
-    sessionStorage.setItem("kansoku-welcomed", "1");
+    welcomedThisLoad = true;
     setShow(false);
     onDone?.();
   }, [onDone]);

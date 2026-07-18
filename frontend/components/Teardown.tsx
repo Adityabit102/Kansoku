@@ -203,8 +203,8 @@ export function HeroTeardown() {
 
   // The flow move: right-of-hero → dead center, growing. Springs smooth the
   // scrub so the travel reads as motion, not as a scrollbar mapping.
-  const bearingXRaw = useTransform(scrollYProgress, [0.08, 0.19], ["21vw", "0vw"]);
-  const bearingScaleRaw = useTransform(scrollYProgress, [0.08, 0.19], [0.62, 1]);
+  const bearingXRaw = useTransform(scrollYProgress, [0.08, 0.19], ["23vw", "0vw"]);
+  const bearingScaleRaw = useTransform(scrollYProgress, [0.08, 0.19], [0.8, 1]);
   const bearingX = useSpring(bearingXRaw, { stiffness: 90, damping: 24 });
   const bearingScale = useSpring(bearingScaleRaw, { stiffness: 90, damping: 24 });
 
@@ -225,11 +225,14 @@ export function HeroTeardown() {
   useMotionValueEvent(speed, "change", (v) => { bearingState.current.speed = v; });
   useMotionValueEvent(amp, "change", (v) => { traceAmp.current = v; });
 
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.07, 0.15], [1, 1, 0]);
-  const heroX = useTransform(scrollYProgress, [0.07, 0.15], [0, -70]);
+  const heroOpacityRaw = useTransform(scrollYProgress, [0, 0.07, 0.15], [1, 1, 0]);
+  const heroXRaw = useTransform(scrollYProgress, [0.07, 0.15], [0, -70]);
+  const heroOpacity = useSpring(heroOpacityRaw, { stiffness: 120, damping: 26 });
+  const heroX = useSpring(heroXRaw, { stiffness: 120, damping: 26 });
   const cueOpacity = useTransform(scrollYProgress, [0, 0.05, 0.1], [1, 1, 0]);
-  const actProgress = useTransform(scrollYProgress, [0.28, 0.68], [0, 1]);
-  const railOpacity = useTransform(scrollYProgress, [0.25, 0.3, 0.66, 0.72], [0, 1, 1, 0]);
+  const actProgressRaw = useTransform(scrollYProgress, [0.28, 0.68], [0, 1]);
+  const actProgress = useSpring(actProgressRaw, { stiffness: 110, damping: 26 });
+  const railOpacity = useTransform(scrollYProgress, [0.25, 0.29, 0.664, 0.684], [0, 1, 1, 0]);
   const traceOpacity = useTransform(scrollYProgress, [0.82, 0.9], [0, 1]);
   const outroOpacity = useTransform(scrollYProgress, [0.9, 0.98], [0, 1]);
   const outroY = useTransform(scrollYProgress, [0.9, 0.98], [16, 0]);
@@ -296,7 +299,7 @@ export function HeroTeardown() {
         {/* Completed acts drift to the left and wait there, blurred — parts
             already inspected, set aside on the bench. */}
         <motion.div
-          style={{ opacity: railOpacity }}
+          style={{ opacity: railOpacity, visibility: act >= 0 ? "visible" : "hidden" }}
           className="absolute left-[4vw] top-1/2 hidden w-72 -translate-y-1/2 flex-col gap-12 lg:flex"
           aria-hidden="true"
         >
@@ -304,9 +307,9 @@ export function HeroTeardown() {
             {ACTS.filter((_, i) => act >= 0 && i < act).map((a, i) => (
               <motion.div
                 key={a.title}
-                initial={{ opacity: 0, x: 180, filter: "blur(0px)" }}
-                animate={{ opacity: 0.4, x: 0, filter: "blur(2.5px)" }}
-                exit={{ opacity: 0, x: 180, filter: "blur(0px)" }}
+                initial={{ opacity: 0, x: 180 }}
+                animate={{ opacity: 0.35, x: 0 }}
+                exit={{ opacity: 0, x: 180 }}
                 transition={{ duration: 0.5, ease: EASE }}
               >
                 <p className="font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.3em] text-muted">
@@ -326,7 +329,7 @@ export function HeroTeardown() {
 
         {/* Act rail: display-scale labels, one act at a time. */}
         <motion.div
-          style={{ opacity: railOpacity }}
+          style={{ opacity: railOpacity, visibility: act >= 0 ? "visible" : "hidden" }}
           className="absolute right-[5vw] top-1/2 hidden w-[30rem] -translate-y-1/2 lg:block"
         >
           <div className="mb-6 flex gap-2" aria-hidden="true">
