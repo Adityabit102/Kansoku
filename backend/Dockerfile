@@ -6,7 +6,9 @@ WORKDIR /app
 COPY pyproject.toml ./
 RUN pip install --no-cache-dir \
     numpy scipy scikit-learn statsmodels PyWavelets pandas pyarrow requests \
-    fastapi "uvicorn[standard]" pydantic joblib python-multipart tensorflow-cpu
+    fastapi "uvicorn[standard]" pydantic joblib python-multipart \
+    "tensorflow-cpu; platform_machine=='x86_64'" \
+    "tensorflow; platform_machine=='aarch64'"
 
 COPY kansoku ./kansoku
 

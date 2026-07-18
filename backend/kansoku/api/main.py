@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 import logging
+import os
 import time
 
 import numpy as np
@@ -29,9 +30,12 @@ log = logging.getLogger(__name__)
 app = FastAPI(title="Kansoku API", version="1.0.0",
               description="Multi-algorithm bearing fault diagnosis")
 
+# Deployed frontends are added via ALLOWED_ORIGINS (comma-separated), e.g.
+# ALLOWED_ORIGINS=https://kansoku.vercel.app
+_extra_origins = [o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "").split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", *_extra_origins],
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )

@@ -122,6 +122,25 @@ An "engineer's report" theme: cream `#F2EBE2` paper as the ground, near-white pa
 
 Motion is two disciplined layers: 2D — ≤ 280 ms ease-out entrances, opacity + ≤ 8px translate, disabled under `prefers-reduced-motion`; 3D — a mouse-tracking perspective tilt on cards, and the cluster explorer's rotating PCA projection: a canvas-rendered, drag-to-rotate 3D scatter of all 5,886 segments across PC1×PC2×PC3, with depth-encoded size/opacity and hover identification. The third component was computed all along; the 3D view is what finally spends it.
 
+## Deployment
+
+Backend on **Hugging Face Spaces** (free, Docker, 16GB), frontend on **Vercel**:
+
+```bash
+# 1. Backend: create a Docker Space at huggingface.co/new-space, then
+HF_TOKEN=hf_xxx ./deploy/deploy_hf.sh <hf-username> kansoku-api
+#    -> https://<hf-username>-kansoku-api.hf.space
+
+# 2. Frontend: import the GitHub repo in Vercel
+#    Root Directory: frontend
+#    Env var:        NEXT_PUBLIC_API_URL=https://<hf-username>-kansoku-api.hf.space
+
+# 3. Back on the Space (Settings -> Variables), allow the Vercel origin:
+#    ALLOWED_ORIGINS=https://<your-app>.vercel.app
+```
+
+The root [Dockerfile](Dockerfile) bakes in the committed artifacts and processed features, so the deployed API is fully self-sufficient — no raw-data download, no volumes. It honors `$PORT` and installs the right TensorFlow wheel per architecture.
+
 ## Docs
 
 [PRD](PRD.md) · [Tech stack](TECHSTACK.md)

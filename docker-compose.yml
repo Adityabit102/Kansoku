@@ -3,6 +3,10 @@ services:
     build: ./backend
     ports:
       - "8000:8000"
+    environment:
+      # The package lives at /app/kansoku; without this the config would
+      # derive paths from the filesystem root instead of the mounts below.
+      KANSOKU_ROOT: /app
     volumes:
       # Mounted, not baked in: retraining never requires an image rebuild.
       - ./artifacts:/app/artifacts

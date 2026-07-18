@@ -1,10 +1,13 @@
 """Central configuration. Every seed, path, and signal constant lives here."""
 
+import os
 from pathlib import Path
 
 RANDOM_SEED = 42
 
-ROOT = Path(__file__).resolve().parents[2]
+# Repo root by default; containers set KANSOKU_ROOT because the package's
+# on-disk location no longer implies where artifacts/data were placed.
+ROOT = Path(os.environ.get("KANSOKU_ROOT", Path(__file__).resolve().parents[2]))
 DATA_RAW = ROOT / "data" / "raw"
 DATA_PROCESSED = ROOT / "data" / "processed"
 ARTIFACTS = ROOT / "artifacts"
