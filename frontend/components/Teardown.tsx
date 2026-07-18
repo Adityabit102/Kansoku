@@ -194,6 +194,7 @@ export function HeroTeardown() {
   const bearingState = useRef<BearingState>({ explode: 0, focus: 0, speed: 1 });
   const traceAmp = useRef(0);
   const [act, setAct] = useState(-1);
+  const [inSequence, setInSequence] = useState(false);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -202,8 +203,8 @@ export function HeroTeardown() {
 
   // The flow move: right-of-hero → dead center, growing. Springs smooth the
   // scrub so the travel reads as motion, not as a scrollbar mapping.
-  const bearingXRaw = useTransform(scrollYProgress, [0.08, 0.19], ["24vw", "0vw"]);
-  const bearingScaleRaw = useTransform(scrollYProgress, [0.08, 0.19], [0.68, 1]);
+  const bearingXRaw = useTransform(scrollYProgress, [0.08, 0.19], ["21vw", "0vw"]);
+  const bearingScaleRaw = useTransform(scrollYProgress, [0.08, 0.19], [0.62, 1]);
   const bearingX = useSpring(bearingXRaw, { stiffness: 90, damping: 24 });
   const bearingScale = useSpring(bearingScaleRaw, { stiffness: 90, damping: 24 });
 
@@ -214,6 +215,7 @@ export function HeroTeardown() {
   useMotionValueEvent(scrollYProgress, "change", (p) => {
     const current = ACTS.findIndex(({ at }) => p >= at[0] && p < at[1]);
     setAct(current);
+    setInSequence(p > 0.13);
     bearingState.current.focus = current === -1 ? 0 : ACTS[current].focus;
   });
   useMotionValueEvent(explode, "change", (v) => { bearingState.current.explode = v; });
@@ -230,18 +232,22 @@ export function HeroTeardown() {
   const outroY = useTransform(scrollYProgress, [0.9, 0.98], [16, 0]);
 
   return (
-    <section ref={sectionRef} aria-label="Hero and bearing teardown" className="relative h-[550vh]">
+    <section ref={sectionRef} aria-label="Hero and bearing teardown" className="relative -mt-10 h-[550vh]">
       <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden">
         {/* The machine: starts right-of-hero, flows to center and grows. */}
         <motion.div
           style={{ x: bearingX, scale: bearingScale }}
-          className="w-[min(640px,92vw)]"
+          className="w-[min(800px,94vw)]"
         >
-          <Bearing3D size={640} stateRef={bearingState} />
+          <Bearing3D size={800} stateRef={bearingState} />
         </motion.div>
 
         {/* Hero copy over the left; dissolves as the teardown begins. */}
-        <div className="absolute inset-x-6 top-[16%] z-10 md:inset-x-10 lg:top-1/2 lg:max-w-xl lg:-translate-y-1/2">
+        <div
+          className="absolute inset-x-6 top-[14%] z-10 md:inset-x-10 lg:top-[44%] lg:max-w-xl lg:-translate-y-1/2"
+          style={{ visibility: inSequence ? "hidden" : "visible" }}
+          aria-hidden={inSequence}
+        >
           <motion.div style={{ opacity: heroOpacity, x: heroX }}>
             <motion.p
               initial={{ opacity: 0, x: -16 }}
@@ -269,7 +275,7 @@ export function HeroTeardown() {
 
         {/* Scroll cue. */}
         <motion.div
-          style={{ opacity: cueOpacity }}
+          style={{ opacity: cueOpacity, visibility: inSequence ? "hidden" : "visible" }}
           className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center"
         >
           <p className="text-[11px] uppercase tracking-[0.24em] text-accent">

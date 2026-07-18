@@ -12,15 +12,15 @@ export interface BearingState {
   speed: number;
 }
 
-/** A deep-groove ball bearing, live in 3D and drawn with mechanical detail:
- *  double-rim dotted races with elliptical rim outlines, a dotted shaft end
- *  turning with the inner race, a sage cage polygon, and ten shaded rolling
- *  elements — one red, the defect this platform exists to catch. It emits a
- *  pulse each revolution, the way a real spall strikes a race once per pass.
- *  `stateRef` lets the scroll sequence drive explosion, per-component
+/** A deep-groove ball bearing, live in 3D with real mechanical mass: each race
+ *  is a walled ring — inner and outer wall, top and bottom rim, all dotted,
+ *  edged with elliptical outlines — plus a keyed shaft end, a sage cage with
+ *  radial spokes, and rolling elements shaded as spheres. One is red: the
+ *  defect this platform exists to catch, pulsing once per revolution the way
+ *  a real spall strikes a race. `stateRef` drives explosion, per-component
  *  spotlight, and shaft speed frame-by-frame. */
 export function Bearing3D({
-  size = 620,
+  size = 800,
   stateRef,
 }: {
   size?: number;
@@ -37,7 +37,9 @@ export function Bearing3D({
     canvas.height = size * dpr;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    const OUTER = 1.0, INNER = 0.6, MID = (OUTER + INNER) / 2, SHAFT = 0.3;
+    // Geometry: outer race walls at 0.94/1.08, inner race walls at 0.52/0.66,
+    // balls riding the groove between them, shaft inside everything.
+    const MID = 0.8, SHAFT = 0.3;
     const BALLS = 10;
     const tiltX = 1.02;
     let spin = 0, wobble = 0, t = 0;
@@ -50,7 +52,9 @@ export function Bearing3D({
       [x, z] = [x * cw + z * sw, -x * sw + z * cw];
       const ct = Math.cos(tiltX), st = Math.sin(tiltX);
       [y, z] = [y * ct - z * st, y * st + z * ct];
-      const persp = 1 / (2.2 - z * 0.7);
+      // Gentle perspective: strong enough for depth, weak enough that the
+      // assembly fills its canvas instead of shrinking into it.
+      const persp = 1 / (1.72 - z * 0.42);
       return { sx: size * dpr / 2 + x * scale * persp, sy: cy - y * scale * persp, depth: z };
     };
 
@@ -73,14 +77,13 @@ export function Bearing3D({
       ctx.fill();
     };
 
-    /** Elliptical rim outline: the continuous edge of a race wall. */
     const rim = (r: number, zoff: number, cy: number, scale: number, color: string, w: number) => {
       ctx.strokeStyle = color;
-      ctx.globalAlpha = 0.35 * w;
+      ctx.globalAlpha = 0.32 * w;
       ctx.lineWidth = 1 * dpr;
       ctx.beginPath();
-      for (let k = 0; k <= 72; k++) {
-        const p = project((k / 72) * Math.PI * 2, r, zoff, cy, scale);
+      for (let k = 0; k <= 80; k++) {
+        const p = project((k / 80) * Math.PI * 2, r, zoff, cy, scale);
         if (k === 0) ctx.moveTo(p.sx, p.sy);
         else ctx.lineTo(p.sx, p.sy);
       }
@@ -89,20 +92,23 @@ export function Bearing3D({
       ctx.globalAlpha = 1;
     };
 
-    /** A dotted race wall: two rims of dots plus their outlines. */
+    /** A walled race: two concentric walls, each with top+bottom dotted rims
+     *  and rim outlines — reads as a solid machined ring. */
     const race = (
-      r: number, zbase: number, halfWidth: number, n: number,
-      phase: number, color: string, w: number, cy: number, scale: number,
+      rInnerWall: number, rOuterWall: number, zbase: number, halfWidth: number,
+      n: number, phase: number, color: string, w: number, cy: number, scale: number,
     ) => {
-      rim(r, zbase - halfWidth, cy, scale, color, w);
-      rim(r, zbase + halfWidth, cy, scale, color, w);
-      for (const zoff of [zbase - halfWidth, zbase + halfWidth])
-        for (let i = 0; i < n; i++)
-          dot(project((i / n) * Math.PI * 2 + phase, r, zoff, cy, scale), 1.6, color, w);
+      for (const r of [rInnerWall, rOuterWall]) {
+        rim(r, zbase - halfWidth, cy, scale, color, w);
+        rim(r, zbase + halfWidth, cy, scale, color, w);
+        for (const zoff of [zbase - halfWidth, zbase + halfWidth])
+          for (let i = 0; i < n; i++)
+            dot(project((i / n) * Math.PI * 2 + phase, r, zoff, cy, scale), 1.6, color, w);
+      }
     };
 
     const draw = () => {
-      const W = size * dpr, cy = W * 0.52, scale = W * 0.3;
+      const W = size * dpr, cy = W * 0.52, scale = W * 0.34;
       const st8 = stateRef?.current ?? { explode: 0, focus: 0, speed: 1 };
       const e = Math.max(0, Math.min(1, st8.explode));
       const focus = st8.focus;
@@ -117,14 +123,14 @@ export function Bearing3D({
       // Defect pulses ripple along the outer race plane (assembled only).
       for (let i = pulses.length - 1; i >= 0; i--) {
         const pu = pulses[i];
-        pu.r += 0.012;
+        pu.r += 0.014;
         pu.alpha *= 0.965;
         if (pu.alpha < 0.02) { pulses.splice(i, 1); continue; }
         ctx.strokeStyle = `rgba(165, 42, 42, ${pu.alpha * (1 - e)})`;
         ctx.lineWidth = 1.6 * dpr;
         ctx.beginPath();
         for (let k = 0; k <= 60; k++) {
-          const p = project((k / 60) * Math.PI * 2, pu.r, -e * 0.55, cy, scale);
+          const p = project((k / 60) * Math.PI * 2, pu.r, -e * 0.5, cy, scale);
           if (k === 0) ctx.moveTo(p.sx, p.sy);
           else ctx.lineTo(p.sx, p.sy);
         }
@@ -136,40 +142,63 @@ export function Bearing3D({
 
       // Outer race sinks toward the housing; inner rises toward the shaft;
       // the shaft end explodes furthest, the way teardown diagrams stack.
-      race(OUTER, -e * 0.55, 0.07, 68, 0, "#b89767", wOuter, cy, scale);
-      race(INNER, e * 0.55, 0.055, 46, spin * 1.6, "#d2b48c", wInner, cy, scale);
+      race(0.94, 1.08, -e * 0.5, 0.075, 88, 0, "#b89767", wOuter, cy, scale);
+      race(0.52, 0.66, e * 0.5, 0.06, 60, spin * 1.6, "#d2b48c", wInner, cy, scale);
 
-      // Shaft end: a dotted disc turning with the inner race.
-      rim(SHAFT, e * 0.95, cy, scale, "#c1a26f", wInner);
-      for (let i = 0; i < 26; i++)
-        dot(project((i / 26) * Math.PI * 2 + spin * 1.6, SHAFT, e * 0.95, cy, scale), 1.5, "#c1a26f", wInner);
-      dot(project(0, 0, e * 0.95, cy, scale), 2.6, "#c1a26f", wInner);
+      // Shaft end: dotted disc + hub + four radial spokes, turning with the
+      // inner race. A keyway notch dot marks its rotation.
+      const shaftZ = e * 0.86;
+      rim(SHAFT, shaftZ, cy, scale, "#c1a26f", wInner);
+      for (let i = 0; i < 30; i++)
+        dot(project((i / 30) * Math.PI * 2 + spin * 1.6, SHAFT, shaftZ, cy, scale), 1.5, "#c1a26f", wInner);
+      ctx.strokeStyle = `rgba(193, 162, 111, ${0.4 * wInner})`;
+      ctx.lineWidth = 1 * dpr;
+      for (let sIdx = 0; sIdx < 4; sIdx++) {
+        const a = (sIdx / 4) * Math.PI * 2 + spin * 1.6;
+        const p0 = project(a, 0.06, shaftZ, cy, scale);
+        const p1 = project(a, SHAFT - 0.03, shaftZ, cy, scale);
+        ctx.beginPath();
+        ctx.moveTo(p0.sx, p0.sy);
+        ctx.lineTo(p1.sx, p1.sy);
+        ctx.stroke();
+      }
+      dot(project(spin * 1.6, SHAFT + 0.045, shaftZ, cy, scale), 2.2, "#a52a2a", wInner);
+      dot(project(0, 0, shaftZ, cy, scale), 3 , "#c1a26f", wInner);
 
-      // Cage: sage polygon linking the rolling elements.
+      // Cage: sage polygon linking the elements, with a spoke to each ball.
       ctx.strokeStyle = `rgba(143, 151, 121, ${0.45 * wBalls})`;
       ctx.lineWidth = 1.2 * dpr;
       ctx.beginPath();
       for (let i = 0; i <= BALLS; i++) {
         const a = (i / BALLS) * Math.PI * 2 + spin * 0.64;
-        const p = project(a, MID + e * 0.14, 0, cy, scale);
+        const p = project(a, MID + e * 0.12, 0, cy, scale);
         if (i === 0) ctx.moveTo(p.sx, p.sy);
         else ctx.lineTo(p.sx, p.sy);
       }
       ctx.stroke();
+      for (let i = 0; i < BALLS; i++) {
+        const a = (i / BALLS) * Math.PI * 2 + spin * 0.64;
+        const pIn = project(a, MID - 0.09 + e * 0.12, 0, cy, scale);
+        const pOut = project(a, MID + 0.09 + e * 0.12, 0, cy, scale);
+        ctx.beginPath();
+        ctx.moveTo(pIn.sx, pIn.sy);
+        ctx.lineTo(pOut.sx, pOut.sy);
+        ctx.stroke();
+      }
 
       // Rolling elements as shaded spheres — cage speed ~0.4x shaft speed.
       for (let i = 0; i < BALLS; i++) {
         const a = (i / BALLS) * Math.PI * 2 + spin * 0.64;
         const defect = i === 0;
-        const p = project(a, MID + e * 0.14, 0, cy, scale);
+        const p = project(a, MID + e * 0.12, 0, cy, scale);
         const near = (p.depth + 1) / 2;
-        const rad = (defect ? 4.6 : 4.0) * (0.7 + near * 0.7) * dpr;
+        const rad = (defect ? 5.6 : 5.0) * (0.7 + near * 0.7) * dpr;
 
         if (defect && wBalls === 1 && focus > 0.5) {
           ctx.globalAlpha = 0.22;
           ctx.fillStyle = "#a52a2a";
           ctx.beginPath();
-          ctx.arc(p.sx, p.sy, rad * 2.6, 0, Math.PI * 2);
+          ctx.arc(p.sx, p.sy, rad * 2.4, 0, Math.PI * 2);
           ctx.fill();
         }
 
@@ -178,7 +207,6 @@ export function Bearing3D({
         ctx.beginPath();
         ctx.arc(p.sx, p.sy, rad, 0, Math.PI * 2);
         ctx.fill();
-        // Specular highlight sells the sphere.
         ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
         ctx.beginPath();
         ctx.arc(p.sx - rad * 0.3, p.sy - rad * 0.34, rad * 0.38, 0, Math.PI * 2);
