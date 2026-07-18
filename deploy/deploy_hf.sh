@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Deploy the Kansoku API to a Hugging Face Space (Docker SDK).
+# Deploy the Kansoku API to a Hugging Face Space (Gradio SDK, free tier).
 #
 # One-time setup:
 #   1. Create the Space at https://huggingface.co/new-space
-#      -> SDK: Docker, blank template, name e.g. "kansoku-api", public
+#      -> SDK: Gradio (free tier), blank template, name e.g. "kansoku-api", public
 #   2. Create a WRITE token at https://huggingface.co/settings/tokens
 #
 # Usage:
@@ -23,15 +23,16 @@ trap 'rm -rf "$TMP"' EXIT
 
 git -C "$ROOT" archive HEAD | tar -x -C "$TMP"
 
-# HF reads its config from README front-matter; app_port matches the Dockerfile.
+# HF reads its config from README front-matter; app.py mounts the FastAPI.
 cat > "$TMP/README.md" <<EOF
 ---
 title: Kansoku API
 emoji: 👁️
 colorFrom: red
 colorTo: green
-sdk: docker
-app_port: 8000
+sdk: gradio
+sdk_version: 6.20.0
+app_file: app.py
 pinned: false
 ---
 

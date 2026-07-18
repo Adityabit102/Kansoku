@@ -1,0 +1,18 @@
+# Hugging Face Spaces (Gradio SDK) installs from this file at the repo root.
+# Mirrors backend/pyproject.toml plus gradio for the Space wrapper.
+numpy
+scipy
+scikit-learn
+statsmodels
+PyWavelets
+pandas
+pyarrow
+requests
+fastapi
+uvicorn[standard]
+pydantic
+joblib
+python-multipart
+tensorflow-cpu; platform_machine == "x86_64"
+tensorflow; platform_machine == "aarch64"
+gradio==6.20.0
