@@ -34,7 +34,7 @@ export function Nav() {
           <span className="text-sm font-semibold tracking-[0.2em] text-ink">KANSOKU</span>
         </Link>
 
-        <nav className="flex items-center gap-1 overflow-x-auto">
+        <nav className="flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {LINKS.map(({ href, label }) => {
             const active = pathname === href;
             return (

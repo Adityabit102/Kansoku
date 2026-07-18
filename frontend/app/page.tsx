@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { api, fmtPct } from "@/lib/api";
 import { Teardown } from "@/components/Teardown";
 import { DotGrid } from "@/components/DotGrid";
+import { LiveTelemetry } from "@/components/LiveTelemetry";
 import {
   EASE,
   ErrorNote,
@@ -120,7 +121,7 @@ export default function Overview() {
 
   return (
     <>
-      <section className="mb-6">
+      <section className="mb-6 grid items-center gap-10 lg:grid-cols-[1fr_460px]">
         <div>
           <motion.p
             initial={{ opacity: 0, x: -16 }}
@@ -144,6 +145,15 @@ export default function Overview() {
           </motion.p>
           <HeroWaveform />
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 32, rotateY: -10, transformPerspective: 1000 }}
+          animate={{ opacity: 1, x: 0, rotateY: 0 }}
+          transition={{ duration: 0.7, ease: EASE, delay: 0.45 }}
+          className="hidden lg:block"
+        >
+          <LiveTelemetry />
+        </motion.div>
       </section>
 
       <Teardown />
