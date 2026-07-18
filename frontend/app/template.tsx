@@ -2,15 +2,16 @@
 
 import { motion } from "framer-motion";
 
-/** Route transition: the incoming page rises on a slight 3D fold with a fast
- *  cross-fade. Content-level stagger belongs to each page; this stays short so
- *  the two layers read as one motion. */
+/** Route transition: a fast opacity-only cross-fade. Deliberately no
+ *  transform here — a transformed ancestor becomes the containing block for
+ *  every position:fixed descendant (the welcome overlay, the scroll beam),
+ *  silently unpinning them from the viewport. */
 export default function Template({ children }: { children: React.ReactNode }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12, rotateX: 4, transformPerspective: 1200 }}
-      animate={{ opacity: 1, y: 0, rotateX: 0 }}
-      transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.26, ease: "easeOut" }}
     >
       {children}
     </motion.div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { animate, createTimer, stagger, type JSAnimation, type Timer } from "animejs";
 import { getInstances } from "animejs/adapters/three";
@@ -207,11 +208,12 @@ export function Welcome({ onDone }: { onDone?: () => void }) {
 
   useEffect(() => {
     if (!typed) return;
-    const id = window.setTimeout(dismiss, 1800);
+    const id = window.setTimeout(dismiss, 2400);
     return () => window.clearTimeout(id);
   }, [typed, dismiss]);
 
-  return (
+  if (typeof document === "undefined") return null;
+  return createPortal(
     <AnimatePresence>
       {show && (
         <motion.div
@@ -289,6 +291,7 @@ export function Welcome({ onDone }: { onDone?: () => void }) {
           </div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
