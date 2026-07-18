@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { api, fmtPct } from "@/lib/api";
-import { Teardown } from "@/components/Teardown";
+import { HeroTeardown } from "@/components/Teardown";
 import { DotGrid } from "@/components/DotGrid";
 import { LiveTelemetry } from "@/components/LiveTelemetry";
 import {
@@ -17,86 +17,6 @@ import {
   TiltCard,
   stagger,
 } from "@/components/ui";
-
-/** Deterministic PRNG so the server- and client-rendered paths match exactly —
- *  Math.random here would cause a hydration mismatch. */
-function mulberry32(seed: number) {
-  return () => {
-    seed |= 0;
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-/** Hero signature: a vibration trace that degrades from healthy noise (left)
- *  into a periodic impact train (right) — the exact signature the platform
- *  detects. Drawn in once. */
-function HeroWaveform() {
-  const rand = mulberry32(42);
-  const n = 360;
-  const points: string[] = [];
-  for (let i = 0; i < n; i++) {
-    const x = (i / (n - 1)) * 100;
-    const fault = Math.max(0, (i - n * 0.45) / (n * 0.55));
-    let y = (rand() - 0.5) * 14;
-    if (fault > 0 && i % 24 < 2) y += (rand() > 0.5 ? 1 : -1) * 34 * fault;
-    points.push(`${x.toFixed(2)},${(40 + y).toFixed(2)}`);
-  }
-  return (
-    <svg viewBox="0 0 100 80" preserveAspectRatio="none" className="mt-10 h-16 w-full" aria-hidden="true">
-      <defs>
-        <linearGradient id="wave" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stopColor="var(--color-sage)" />
-          <stop offset="45%" stopColor="var(--color-tan)" />
-          <stop offset="100%" stopColor="var(--color-accent)" />
-        </linearGradient>
-      </defs>
-      <motion.polyline
-        points={points.join(" ")}
-        fill="none"
-        stroke="url(#wave)"
-        strokeWidth="0.5"
-        vectorEffect="non-scaling-stroke"
-        initial={{ pathLength: 0, opacity: 0 }}
-        animate={{ pathLength: 1, opacity: 1 }}
-        transition={{ duration: 1.6, ease: "easeOut", delay: 0.5 }}
-      />
-    </svg>
-  );
-}
-
-/** Headline words rise one by one from behind a baseline clip. */
-function StaggeredTitle() {
-  const words = ["Bearing", "faults,", "diagnosed", "and"];
-  return (
-    <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight text-ink md:text-[3.4rem]">
-      {words.map((w, i) => (
-        <span key={w} className="inline-block overflow-hidden pb-1 align-bottom">
-          <motion.span
-            className="inline-block"
-            initial={{ y: "110%" }}
-            animate={{ y: 0 }}
-            transition={{ duration: 0.6, ease: EASE, delay: 0.08 + i * 0.07 }}
-          >
-            {w}&nbsp;
-          </motion.span>
-        </span>
-      ))}
-      <span className="inline-block overflow-hidden pb-1 align-bottom">
-        <motion.span
-          className="inline-block text-accent"
-          initial={{ y: "110%" }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.6, ease: EASE, delay: 0.08 + words.length * 0.07 }}
-        >
-          justified.
-        </motion.span>
-      </span>
-    </h1>
-  );
-}
 
 const ROUTES = [
   { href: "/signals", title: "Signals", body: "Raw waveforms and their FFT spectra, per fault class." },
@@ -121,80 +41,56 @@ export default function Overview() {
 
   return (
     <>
-      <section className="mb-6 grid items-center gap-10 lg:grid-cols-[1fr_460px]">
-        <div>
-          <motion.p
-            initial={{ opacity: 0, x: -16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, ease: EASE }}
-            className="mb-4 text-[11px] uppercase tracking-[0.24em] text-accent"
-          >
-            観測 · Observation
-          </motion.p>
-          <StaggeredTitle />
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, ease: EASE, delay: 0.5 }}
-            className="mt-6 max-w-2xl text-[15px] leading-relaxed text-muted"
-          >
-            Kansoku classifies bearing faults from raw vibration signals — and defends every
-            step. Features must pass an effect-size gate before any model sees them, six
-            algorithms are benchmarked on identical recording-grouped splits, and clustering
-            runs unlabeled to surface regimes the labels never encoded.
-          </motion.p>
-          <HeroWaveform />
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, x: 32, rotateY: -10, transformPerspective: 1000 }}
-          animate={{ opacity: 1, x: 0, rotateY: 0 }}
-          transition={{ duration: 0.7, ease: EASE, delay: 0.45 }}
-          className="hidden lg:block"
-        >
-          <LiveTelemetry />
-        </motion.div>
-      </section>
-
-      <Teardown />
+      <HeroTeardown />
 
       <DotGrid />
 
-      <div className="mb-12 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {loading ? (
-          Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[104px]" />)
-        ) : (
-          <>
-            <Stat
-              index={0}
-              label="Best model"
-              value={best ? fmtPct(best.cv_mean, 1) : "—"}
-              sub={`${best?.model_name ?? ""} · cross-validated`}
-              accent
-            />
-            <Stat
-              index={1}
-              label="Segments"
-              value={manifest.data?.n_segments.toLocaleString() ?? "—"}
-              sub="2048-sample windows, 50% overlap"
-            />
-            <Stat
-              index={2}
-              label="Features gated"
-              value={significance.data ? `${gated}/${significance.data.length}` : "—"}
-              sub="cleared p < 0.05 and η² > 0.14"
-            />
-            <Stat
-              index={3}
-              label="Regimes found"
-              value={clusters.data ? `${clusters.data.chosen_k}` : "—"}
-              sub={`unlabeled · vs ${manifest.data?.classes.length ?? 4} labeled classes`}
-            />
-          </>
-        )}
+      {/* The numbers, next to the instrument that produces them. */}
+      <div className="mb-10 grid items-stretch gap-3 lg:grid-cols-[1fr_440px]">
+        <div className="grid grid-cols-2 gap-3">
+          {loading ? (
+            Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[104px]" />)
+          ) : (
+            <>
+              <Stat
+                index={0}
+                label="Best model"
+                value={best ? fmtPct(best.cv_mean, 1) : "—"}
+                sub={`${best?.model_name ?? ""} · cross-validated`}
+                accent
+              />
+              <Stat
+                index={1}
+                label="Segments"
+                value={manifest.data?.n_segments.toLocaleString() ?? "—"}
+                sub="2048-sample windows, 50% overlap"
+              />
+              <Stat
+                index={2}
+                label="Features gated"
+                value={significance.data ? `${gated}/${significance.data.length}` : "—"}
+                sub="cleared p < 0.05 and η² > 0.14"
+              />
+              <Stat
+                index={3}
+                label="Regimes found"
+                value={clusters.data ? `${clusters.data.chosen_k}` : "—"}
+                sub={`unlabeled · vs ${manifest.data?.classes.length ?? 4} labeled classes`}
+              />
+            </>
+          )}
+        </div>
+        <motion.div
+          initial={{ opacity: 0, x: 24, rotateY: -8, transformPerspective: 1000 }}
+          whileInView={{ opacity: 1, x: 0, rotateY: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.6, ease: EASE }}
+        >
+          <LiveTelemetry />
+        </motion.div>
       </div>
 
-      <div className="mb-12 grid gap-3 lg:grid-cols-3">
+      <div className="mb-10 grid gap-3 lg:grid-cols-3">
         <Panel index={0} className="lg:col-span-2">
           <PanelTitle hint="the differentiator">Why the effect-size gate exists</PanelTitle>
           <p className="text-sm leading-relaxed text-muted">
