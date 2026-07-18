@@ -3,6 +3,7 @@ import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Nav } from "@/components/Nav";
+import { ScrollProgress } from "@/components/ScrollProgress";
 
 // Archivo: an industrial grotesque for the shop-floor voice; IBM Plex Mono for
 // instrument numerals — both chosen for the subject, not as defaults.
@@ -29,6 +30,7 @@ export default function RootLayout({
     <html lang="en" className={`${archivo.variable} ${mono.variable} h-full antialiased`}>
       <body className="grain flex min-h-full flex-col font-[family-name:var(--font-archivo)]">
         <Providers>
+          <ScrollProgress />
           <Nav />
           <main className="mx-auto w-full max-w-[1400px] flex-1 px-6 py-10 md:px-10">
             {children}

@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { api, fmtPct } from "@/lib/api";
-import { Bearing3D } from "@/components/Bearing3D";
+import { Teardown } from "@/components/Teardown";
+import { DotGrid } from "@/components/DotGrid";
 import {
   EASE,
   ErrorNote,
@@ -119,7 +120,7 @@ export default function Overview() {
 
   return (
     <>
-      <section className="mb-14 grid items-center gap-8 lg:grid-cols-[1fr_auto]">
+      <section className="mb-6">
         <div>
           <motion.p
             initial={{ opacity: 0, x: -16 }}
@@ -143,20 +144,11 @@ export default function Overview() {
           </motion.p>
           <HeroWaveform />
         </div>
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.85, rotate: -8 }}
-          animate={{ opacity: 1, scale: 1, rotate: 0 }}
-          transition={{ duration: 0.9, ease: EASE, delay: 0.3 }}
-          className="mx-auto hidden lg:block"
-          aria-hidden="true"
-        >
-          <Bearing3D size={380} />
-          <p className="-mt-2 text-center text-[10px] uppercase tracking-[0.2em] text-muted">
-            one defect per revolution — that is the whole problem
-          </p>
-        </motion.div>
       </section>
+
+      <Teardown />
+
+      <DotGrid />
 
       <div className="mb-12 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {loading ? (
