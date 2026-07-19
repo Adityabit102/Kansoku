@@ -1,5 +1,7 @@
 # Kansoku (観測)
 
+**[Live Demo](https://kansoku-weld.vercel.app)** · **[API](https://kansoku-api.onrender.com/docs)** · **[GitHub](https://github.com/Adityabit102/Kansoku)**
+
 **Multi-Algorithm Fault Diagnosis Platform** — detect, classify, and statistically explain machine faults from vibration sensor signals.
 
 `Python` · `scikit-learn` · `TensorFlow/Keras` · `SciPy` · `statsmodels` · `PyWavelets` · `FastAPI` · `Next.js` · `TypeScript` · `D3.js` · `Docker` | Predictive Maintenance · Signal Processing · Applied Statistics · Full Stack
