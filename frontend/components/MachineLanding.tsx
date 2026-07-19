@@ -75,8 +75,11 @@ export function MachineLanding() {
     const ctx = canvas.getContext("2d")!;
     const DPR = Math.min(devicePixelRatio || 1, 1.5);
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let W = 0, H = 0, raf = 0;
-    const resize = () => { W = innerWidth; H = innerHeight; canvas.width = W * DPR; canvas.height = H * DPR; };
+    let W = 0, H = 0, raf = 0, narrow = false;
+    const resize = () => {
+      W = innerWidth; H = innerHeight; narrow = W < 860;
+      canvas.width = W * DPR; canvas.height = H * DPR;
+    };
     addEventListener("resize", resize); resize();
 
     const actsBox: HTMLDivElement = actsEl;
@@ -95,9 +98,17 @@ export function MachineLanding() {
       target.explode = s2 * (1 - s3);
       target.blue = clamp(s2 - s4v * 0.85, 0, 1);
       target.bg = range(p, 0.10, 0.20);
-      target.xoff = 0.16 * (1 - s2) - 0.15 * s3 * (1 - s4v);
-      target.yoff = 0.06 * s4v;
-      target.scale = 0.98 + 0.18 * s2 - 0.22 * s3 + 0.02 * s4v;
+      if (narrow) {
+        // Portrait: machine centered, sitting below the copy in the hero and
+        // clear of the bottom cards during acts 2-3.
+        target.xoff = 0;
+        target.yoff = 0.16 * (1 - s2) - 0.06 * s2 * (1 - s3) - 0.08 * s3 * (1 - s4v) + 0.02 * s4v;
+        target.scale = 0.9 + 0.12 * s2 - 0.18 * s3;
+      } else {
+        target.xoff = 0.16 * (1 - s2) - 0.15 * s3 * (1 - s4v);
+        target.yoff = 0.06 * s4v;
+        target.scale = 0.98 + 0.18 * s2 - 0.22 * s3 + 0.02 * s4v;
+      }
       target.speed = 1 + 2.2 * s4v;
       target.trace = s4v * (1 - past);
       target.ghost = 1 - past * 0.92;
@@ -318,22 +329,33 @@ export function MachineLanding() {
 
     const anchors = [PARTS[1], PARTS[3], null, PARTS[5], PARTS[7], PARTS[8]];
     const sides = [-1, -1, -1, 1, 1, 1];
-    function callouts(alpha: number) {
+    function leader(idx: number, alpha: number, fromX: number, fromY: number, elbow: number) {
+      const part = anchors[idx];
+      if (part) projA(sides[idx] > 0 ? 0.6 : 2.5, part.r * 0.9, (part.z0 + part.z1) / 2 + exZ(part), P0);
+      else projA(2.9, BALL_R, BALL_Z, P0);
+      ctx.globalAlpha = alpha * 0.8; ctx.lineWidth = 1 * DPR;
+      ctx.strokeStyle = idx === 2 ? BRICK : "#b08d54";
+      ctx.beginPath(); ctx.moveTo(fromX, fromY);
+      ctx.lineTo(fromX + elbow, fromY); ctx.lineTo(P0.x, P0.y); ctx.stroke();
+      ctx.beginPath(); ctx.arc(P0.x, P0.y, 3 * DPR, 0, 7); ctx.fillStyle = ctx.strokeStyle; ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    function callouts(alpha: number, p: number) {
+      if (narrow) {
+        // One part at a time, carousel'd by scroll through act 2's window.
+        const active = Math.min(5, Math.floor(range(p, 0.17, 0.42) * 6));
+        calloutEls.forEach((el, i) => { el.style.opacity = String(i === active ? alpha : 0); });
+        if (alpha < 0.02) return;
+        const r = calloutEls[active].getBoundingClientRect();
+        leader(active, alpha, (r.left + r.width / 2) * DPR, r.top * DPR, 0);
+        return;
+      }
       calloutEls.forEach((el) => { el.style.opacity = String(alpha); });
       if (alpha < 0.02) return;
-      ctx.globalAlpha = alpha * 0.8; ctx.lineWidth = 1 * DPR;
       calloutEls.forEach((el, idx) => {
         const r = el.getBoundingClientRect();
-        const lx = (sides[idx] < 0 ? r.right + 10 : r.left - 10) * DPR, ly = (r.top + 14) * DPR;
-        const part = anchors[idx];
-        if (part) projA(sides[idx] > 0 ? 0.6 : 2.5, part.r * 0.9, (part.z0 + part.z1) / 2 + exZ(part), P0);
-        else projA(2.9, BALL_R, BALL_Z, P0);
-        ctx.strokeStyle = idx === 2 ? BRICK : "#b08d54";
-        ctx.beginPath(); ctx.moveTo(lx, ly);
-        ctx.lineTo(lx + sides[idx] * -30 * DPR, ly); ctx.lineTo(P0.x, P0.y); ctx.stroke();
-        ctx.beginPath(); ctx.arc(P0.x, P0.y, 3 * DPR, 0, 7); ctx.fillStyle = ctx.strokeStyle; ctx.fill();
+        leader(idx, alpha, (sides[idx] < 0 ? r.right + 10 : r.left - 10) * DPR, (r.top + 14) * DPR, sides[idx] * -30 * DPR);
       });
-      ctx.globalAlpha = 1;
     }
 
     const tbuf = new Float64Array(240); let tt = 0, imp = 0, seed = 9;
@@ -344,7 +366,7 @@ export function MachineLanding() {
         if (tt % 64 === 0) imp = 1; imp *= 0.87;
         tbuf[tt % 240] = rnd() * 0.3 + imp * anim.trace * (rnd() > 0 ? 1 : -1) * 2.2; tt++;
       }
-      const w = Math.min(W * 0.5, 560) * DPR, x0 = W * DPR / 2 - w / 2, y0 = H * DPR * 0.86;
+      const w = Math.min(W * (narrow ? 0.9 : 0.5), 560) * DPR, x0 = W * DPR / 2 - w / 2, y0 = H * DPR * 0.86;
       ctx.globalAlpha = anim.trace;
       for (let i = 1; i < 240; i++) {
         const a = tbuf[(tt + i - 1) % 240], b = tbuf[(tt + i) % 240];
@@ -410,7 +432,7 @@ export function MachineLanding() {
         ctx.setLineDash([]); ctx.globalAlpha = 1;
       }
       const co = html(p, past);
-      callouts(co * anim.blue);
+      callouts(co * anim.blue, p);
       trace();
       raf = requestAnimationFrame(frame);
     }

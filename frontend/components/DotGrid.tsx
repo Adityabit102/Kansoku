@@ -46,18 +46,18 @@ export function DotGrid() {
   return (
     <div
       ref={rootRef}
-      className="mb-12 flex select-none flex-col items-center gap-[10px] py-2"
+      className="mb-12 flex select-none flex-col items-center gap-1.5 py-2 sm:gap-[10px]"
       aria-hidden="true"
     >
       {Array.from({ length: ROWS }, (_, r) => (
-        <div key={r} className="flex gap-[10px]">
+        <div key={r} className="flex gap-1.5 sm:gap-[10px]">
           {Array.from({ length: COLS }, (_, c) => (
             <button
               key={c}
               data-dot
               tabIndex={-1}
               onClick={() => ripple(r * COLS + c)}
-              className="h-[5px] w-[5px] cursor-pointer rounded-full border-0 bg-tan p-0"
+              className="h-1 w-1 cursor-pointer rounded-full border-0 bg-tan p-0 sm:h-[5px] sm:w-[5px]"
             />
           ))}
         </div>
