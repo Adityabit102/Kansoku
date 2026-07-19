@@ -34,6 +34,17 @@ def _require(path):
     return path
 
 
+@functools.lru_cache(maxsize=8)
+def raw_json(name: str) -> bytes:
+    """Pre-serialized artifact bytes for the read endpoints.
+
+    These files were validated when written; re-parsing and re-validating
+    5,886 cluster points through Pydantic on every request is a memory/CPU
+    burst a 512MB free-tier instance cannot afford (it OOM-cycles).
+    """
+    return _require(ARTIFACTS / f"{name}.json").read_bytes()
+
+
 @functools.lru_cache(maxsize=1)
 def manifest() -> dict:
     return json.loads(_require(ARTIFACTS / "manifest.json").read_text())

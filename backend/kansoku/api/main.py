@@ -8,19 +8,16 @@ import os
 import time
 
 import numpy as np
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from scipy.io import loadmat
 
 from kansoku.api import artifacts as art
 from kansoku.config import SAMPLING_RATE_HZ, WINDOW_SIZE
 from kansoku.contracts import (
-    ClusterResponse,
     DrivingFeature,
-    LeaderboardRow,
     PredictionResponse,
     SignalResponse,
-    SignificanceRow,
 )
 from kansoku.signal.features import extract_all
 from kansoku.signal.segment import segment
@@ -55,19 +52,23 @@ def get_manifest() -> dict:
     return {**art.manifest(), "disabled_models": sorted(_disabled_models())}
 
 
-@app.get("/significance", response_model=list[SignificanceRow])
-def get_significance() -> list[dict]:
-    return art.significance()
+# The three big read endpoints serve cached, pre-validated artifact bytes.
+# Their shapes are pinned by contracts.py (SignificanceRow, LeaderboardRow,
+# ClusterResponse) and asserted in tests; re-validating them per request
+# OOM-cycles a 512MB instance.
+@app.get("/significance")
+def get_significance() -> Response:
+    return Response(art.raw_json("significance"), media_type="application/json")
 
 
-@app.get("/leaderboard", response_model=list[LeaderboardRow])
-def get_leaderboard() -> list[dict]:
-    return art.leaderboard()
+@app.get("/leaderboard")
+def get_leaderboard() -> Response:
+    return Response(art.raw_json("leaderboard"), media_type="application/json")
 
 
-@app.get("/clusters", response_model=ClusterResponse)
-def get_clusters() -> dict:
-    return art.clusters()
+@app.get("/clusters")
+def get_clusters() -> Response:
+    return Response(art.raw_json("clusters"), media_type="application/json")
 
 
 @app.get("/segments")
