@@ -1,5 +1,5 @@
-# Render free tier (512MB): backend deps without TensorFlow — the MLP is
-# disabled via DISABLED_MODELS and everything else serves normally.
+# Render free tier (512MB): backend deps without TensorFlow — the MLP serves
+# from exported NumPy weights (mlp_weights.npz) with identical outputs.
 # Versions pinned to the locally verified environment so the joblib model
 # artifacts always unpickle against the sklearn they were trained with.
 fastapi==0.139.2

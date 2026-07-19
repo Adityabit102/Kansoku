@@ -59,10 +59,34 @@ def scaler():
     return joblib.load(_require(ARTIFACTS / "scaler.joblib"))
 
 
+class _NumpyMLP:
+    """The exported Keras MLP served without TensorFlow.
+
+    Weights come from kansoku.models.export_mlp, which asserts output parity
+    with Keras (max divergence ~1e-7) before writing. Exposes .predict with
+    Keras's signature so the serving path treats both loaders identically.
+    """
+
+    def __init__(self, path):
+        w = np.load(path)
+        self.w = {k: w[k] for k in ("W1", "b1", "W2", "b2", "W3", "b3")}
+
+    def predict(self, X, verbose=0):  # noqa: ARG002 - keras-compatible signature
+        h = np.maximum(X @ self.w["W1"] + self.w["b1"], 0)
+        h = np.maximum(h @ self.w["W2"] + self.w["b2"], 0)
+        logits = h @ self.w["W3"] + self.w["b3"]
+        logits -= logits.max(axis=1, keepdims=True)
+        e = np.exp(logits)
+        return e / e.sum(axis=1, keepdims=True)
+
+
 @functools.lru_cache(maxsize=8)
 def model_by_name(name: str):
     """Load any benchmarked model by its leaderboard name."""
     if name == "Neural Network (MLP)":
+        npz = MODELS_DIR / "mlp_weights.npz"
+        if npz.exists():
+            return _NumpyMLP(npz)
         from tensorflow import keras
 
         return keras.models.load_model(_require(MODELS_DIR / "mlp.keras"))

@@ -81,7 +81,7 @@ K-means discovery              6-model benchmark
 | Statistics | SciPy (`levene`, `f_oneway`, `kruskal`), statsmodels (Tukey HSD), eta-squared |
 | ML — classical | scikit-learn (5 classifiers, KMeans, PCA, silhouette, StratifiedGroupKFold) |
 | ML — neural | TensorFlow/Keras MLP (128→64, dropout, seeded) |
-| Backend | FastAPI, Pydantic contracts, joblib + Keras artifacts, versioned manifest |
+| Backend | FastAPI, Pydantic contracts, joblib + Keras artifacts (MLP also exported to NumPy weights for TF-free serving), versioned manifest |
 | Frontend | Next.js 16, TypeScript, Tailwind v4, Framer Motion, D3.js, Recharts, TanStack Query |
 | Quality | pytest (44 tests), ruff, ESLint, GitHub Actions CI |
 | Infra | Docker + docker-compose, artifact/data volumes |
@@ -128,9 +128,9 @@ Backend on **Render** (free tier, no card), frontend on **Vercel**:
 
 ```bash
 # 1. Backend: render.com -> New + -> Blueprint -> connect this repo
-#    (render.yaml configures everything: python runtime, health check,
-#     DISABLED_MODELS="Neural Network (MLP)" so TF stays off the 512MB host —
-#     the MLP keeps its leaderboard metrics, it just can't serve there)
+#    (render.yaml configures everything: python runtime, health check, pinned
+#     deps. TensorFlow stays off the 512MB host — the MLP serves from exported
+#     NumPy weights with outputs identical to Keras, so all six models run)
 #    -> https://kansoku-api.onrender.com
 
 # 2. Frontend: import the GitHub repo in Vercel

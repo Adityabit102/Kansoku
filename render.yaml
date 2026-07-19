@@ -1,7 +1,7 @@
 # Render free-tier blueprint: deploy with "New +" -> Blueprint, or create a
-# Web Service manually with these settings. TensorFlow is excluded (512MB
-# host); DISABLED_MODELS keeps the MLP listed on the leaderboard but marks it
-# unavailable for serving.
+# Web Service manually with these settings. TensorFlow is excluded from the
+# 512MB host; the MLP serves from exported NumPy weights (bit-identical
+# outputs, see kansoku/models/export_mlp.py) so all six models run.
 services:
   - type: web
     name: kansoku-api
@@ -13,7 +13,5 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
-      - key: DISABLED_MODELS
-        value: Neural Network (MLP)
       - key: ALLOWED_ORIGINS
         sync: false

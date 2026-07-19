@@ -179,6 +179,32 @@ def test_disabled_model_rejected_and_default_reroutes(monkeypatch):
     assert "Random Forest" in client.get("/manifest").json()["disabled_models"]
 
 
+def test_mlp_serves_without_tensorflow_import():
+    """The MLP must serve from exported weights via the numpy wrapper."""
+    from kansoku.api import artifacts as art
+
+    art.model_by_name.cache_clear()
+    mdl = art.model_by_name("Neural Network (MLP)")
+    assert type(mdl).__name__ == "_NumpyMLP", "npz path must be preferred over keras"
+    r = client.get("/predict/demo/105?model=Neural Network (MLP)")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["model_name"] == "Neural Network (MLP)"
+    assert body["predicted_class"] == "inner_race"
+
+
+def test_numpy_mlp_matches_keras():
+    """Exported weights must reproduce Keras outputs to float32 precision."""
+    tf = pytest.importorskip("tensorflow")
+    from kansoku.api.artifacts import MODELS_DIR, _NumpyMLP
+
+    keras_mlp = tf.keras.models.load_model(MODELS_DIR / "mlp.keras")
+    np_mlp = _NumpyMLP(MODELS_DIR / "mlp_weights.npz")
+    rng = np.random.default_rng(1)
+    X = rng.standard_normal((64, keras_mlp.input_shape[1])).astype(np.float32)
+    assert float(np.abs(keras_mlp.predict(X, verbose=0) - np_mlp.predict(X)).max()) < 1e-5
+
+
 def test_signal_bundle_fallback_matches_contract():
     """Every /segments entry must be servable from the committed bundle alone."""
     from kansoku.api import artifacts as art
