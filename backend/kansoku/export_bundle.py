@@ -26,7 +26,7 @@ from kansoku.signal.segment import segment
 log = logging.getLogger(__name__)
 
 BUNDLE_NPZ = ARTIFACTS / "signal_bundle.npz"
-DEMO_IDS = (97, 105, 118, 234)
+DEMO_IDS = (97, 105, 118, 130, 234)  # UI demos + the test-contract recording
 DEMO_SAMPLES = 50_000  # ~4.2s @ 12kHz -> ~47 windows, plenty for the vote
 
 

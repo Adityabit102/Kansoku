@@ -28,6 +28,8 @@ jobs:
       # statistics suites are pure unit tests and always run.
       - name: Test
         run: PYTHONPATH=. pytest tests -q
+        env:
+          LATENCY_BUDGET_MS: "800"
 
   frontend:
     runs-on: ubuntu-latest
